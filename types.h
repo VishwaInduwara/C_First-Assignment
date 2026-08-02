@@ -38,6 +38,14 @@ typedef enum{
     PropertyType_Utility ,
 }PropertyType;
 
+//Insurance Policy Types
+typedef enum{
+    Basic_Insurance ,
+    Comprehensive_Insurance ,
+    Business_Interruption_Insurance ,
+    None_Insurance ,
+}PolicyType;
+
 typedef struct{
     //Identity
     char name[50];
@@ -64,15 +72,6 @@ typedef struct{
     PolicyType insurancePolicyType;
     int insuranceRoundsRemaining; //Number of rounds remaining for the insurance policy
 } Property;
-
-//Insurance Policy Types
-typedef enum{
-    Basic_Insurance ,
-    Comprehensive_Insurance ,
-    Business_Interruption_Insurance ,
-    None_Insurance ,
-}PolicyType;
-
 
 
 typedef enum{
