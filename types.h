@@ -1,6 +1,10 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#define BOARD_SIZE 40
+
+//Enums
+
 typedef enum{
     SQ_START ,
     SQ_PROPERTY ,
@@ -12,13 +16,6 @@ typedef enum{
     SQ_INSURANCE ,
     SQ_BANK ,
 } SquareType;
-
-typedef struct{
-    int index;
-    SquareType type;
-    char name[50];
-    int propertyIndex;
-} Square;
 
 typedef enum{
     Group_Brown ,
@@ -46,9 +43,31 @@ typedef enum{
     None_Insurance ,
 }PolicyType;
 
+typedef enum{
+    STRATEGY_AGGRESSIVE_INVESTOR ,
+    STRATEGY_CONSERVATIVE_BANKER ,
+    STRATEGY_RISK_TAKER ,
+    STRATEGY_OPPORTUNISTIC_TRADER ,
+} PlayerStrategy;
+
+
+//Structs
+
+
+/*typedef struct{
+    int index;
+    SquareType type;
+    char name[50];
+    int propertyIndex;
+} Square;*/
+
+
 typedef struct{
     //Identity
+    int index;
     char name[50];
+    int propertyIndex; //-1 for non-property squares
+    SquareType type;
     PropertyGroup group;
     PropertyType propertytype;
 
@@ -71,15 +90,8 @@ typedef struct{
     //Insurance Policy
     PolicyType insurancePolicyType;
     int insuranceRoundsRemaining; //Number of rounds remaining for the insurance policy
-} Property;
+} Square;
 
-
-typedef enum{
-    STRATEGY_AGGRESSIVE_INVESTOR ,
-    STRATEGY_CONSERVATIVE_BANKER ,
-    STRATEGY_RISK_TAKER ,
-    STRATEGY_OPPORTUNISTIC_TRADER ,
-} PlayerStrategy;
 
 typedef struct{
     char name[50];
@@ -108,9 +120,9 @@ typedef struct{
     int isActive; //0 or 1
 } Loan;
 
-typedef struct{
-    Square squares[40]; //Array of 40 squares on the board
-    Property properties[28]; //Array of 28 properties on the board
+/*typedef struct{
+    //Square squares[40]; //Array of 40 squares on the board
+   // Square properties[28]; //Array of 28 properties on the board
     Player players[4]; //Array of 4 players in the game
     Loan loans[4]; //One loan for one player at a time
 
@@ -127,6 +139,6 @@ typedef struct{
     int regionalCardRoundsRemaining; //Number of rounds remaining for the active regional card effect
 
     int gameOver; //0 or 1
-} GameBoard;
+} GameState;*/
 
 #endif // TYPES_H
