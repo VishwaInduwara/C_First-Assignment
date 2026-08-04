@@ -4,7 +4,7 @@
 #include "types.h"
 
 
-Square squares[40]; //Array of 40 squares on the board
+//Square squares[40]; //Array of 40 squares on the board
 
 void initBoard(Square *squares){
 

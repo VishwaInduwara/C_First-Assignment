@@ -121,8 +121,8 @@ typedef struct{
 } Loan;
 
 /*typedef struct{
-    //Square squares[40]; //Array of 40 squares on the board
-   // Square properties[28]; //Array of 28 properties on the board
+    Square squares[40]; //Array of 40 squares on the board
+    Square properties[28]; //Array of 28 properties on the board
     Player players[4]; //Array of 4 players in the game
     Loan loans[4]; //One loan for one player at a time
 
