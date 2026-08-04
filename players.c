@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include "players.h"
 
-//Player players[4];
+//Player players[MAX_PLAYERS];
 
 void initPlayers(Player *players){
-    for(int i = 0; i < 4; i++){
+    for(int i = 0; i < MAX_PLAYERS; i++){
         // Initialize player attributes
         players[i].position = 0; // Start at the beginning of the board
         players[i].cash = 30000; // Starting cash balance
@@ -34,10 +34,10 @@ void initPlayers(Player *players){
     players[1].strategy = STRATEGY_CONSERVATIVE_BANKER;
 
     //Player 3: Risk Averse
-    strcpy(players[2].name, "Risk Averse");
+    strcpy(players[2].name, "Risk Taker");
     players[2].strategy = STRATEGY_RISK_TAKER;
 
     //Player 4: Opportunist
-    strcpy(players[3].name, "Opportunist");
+    strcpy(players[3].name, "Opportunist Trader");
     players[3].strategy = STRATEGY_OPPORTUNISTIC_TRADER;
 }

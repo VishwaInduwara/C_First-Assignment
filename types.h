@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #define BOARD_SIZE 40
+#define MAX_PLAYERS 4
 
 //Enums
 
@@ -99,6 +100,8 @@ typedef struct{
     int position; //0-39,current square index
     int cash; //Current cash balance
 
+    int playerrolls; //Dice value rolled by the player to determine turn order
+
     int ownedProperties[28]; //Array of property indices owned by the player
     int numOwnedProperties; //Number of properties owned by the player
 
@@ -123,8 +126,8 @@ typedef struct{
 /*typedef struct{
     Square squares[40]; //Array of 40 squares on the board
     Square properties[28]; //Array of 28 properties on the board
-    Player players[4]; //Array of 4 players in the game
-    Loan loans[4]; //One loan for one player at a time
+    Player players[MAX_PLAYERS]; //Array of players in the game
+    Loan loans[MAX_PLAYERS]; //One loan for one player at a time
 
     int currentRound;
     int currentInflationRate; //Percentage

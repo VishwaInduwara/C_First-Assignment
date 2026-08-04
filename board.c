@@ -56,6 +56,7 @@ void initBoard(Square *squares){
     strcpy(squares[3].name, "Maradana");
     squares[3].type = SQ_PROPERTY;
     squares[3].group = Group_Brown;
+    squares[3].propertyIndex = 1; //Index of the associated property
     squares[3].basePurchasePrice = 1800;
     squares[3].baseMortgageValue = 750;
     squares[3].baseHouseCost = 500;
@@ -74,6 +75,7 @@ void initBoard(Square *squares){
     strcpy(squares[6].name, "Bambalapitiya");
     squares[6].type = SQ_PROPERTY;
     squares[6].group = Group_LightBlue;
+    squares[6].propertyIndex = 2; //Index of the associated property
     squares[6].basePurchasePrice = 2500;
     squares[6].baseMortgageValue = 1250;
     squares[6].baseHouseCost = 750;
@@ -86,6 +88,7 @@ void initBoard(Square *squares){
     strcpy(squares[8].name, "Wellawatte");
     squares[8].type = SQ_PROPERTY;
     squares[8].group = Group_LightBlue;
+    squares[8].propertyIndex = 3; //Index of the associated property
     squares[8].basePurchasePrice = 2700;
     squares[8].baseMortgageValue = 1250;
     squares[8].baseHouseCost = 750;
@@ -95,6 +98,7 @@ void initBoard(Square *squares){
     strcpy(squares[9].name, "Mount Lavinia");
     squares[9].type = SQ_PROPERTY;
     squares[9].group = Group_LightBlue;
+    squares[9].propertyIndex = 4; //Index of the associated property
     squares[9].basePurchasePrice = 3000;
     squares[9].baseMortgageValue = 1250;
     squares[9].baseHouseCost = 750;
@@ -107,6 +111,7 @@ void initBoard(Square *squares){
     strcpy(squares[11].name, "Nugegoda");
     squares[11].type = SQ_PROPERTY;
     squares[11].group = Group_Pink;
+    squares[11].propertyIndex = 5; //Index of the associated property
     squares[11].basePurchasePrice = 3500;
     squares[11].baseMortgageValue = 1750;
     squares[11].baseHouseCost = 1000;
@@ -121,6 +126,7 @@ void initBoard(Square *squares){
     strcpy(squares[13].name, "Maharagama");
     squares[13].type = SQ_PROPERTY;
     squares[13].group = Group_Pink;
+    squares[13].propertyIndex = 6; //Index of the associated property
     squares[13].basePurchasePrice = 3800;
     squares[13].baseMortgageValue = 1750;
     squares[13].baseHouseCost = 1000;
@@ -130,6 +136,7 @@ void initBoard(Square *squares){
     strcpy(squares[14].name, "Kottawa");
     squares[14].type = SQ_PROPERTY;
     squares[14].group = Group_Pink;
+    squares[14].propertyIndex = 7; //Index of the associated property
     squares[14].basePurchasePrice = 4000;
     squares[14].baseMortgageValue = 1750;
     squares[14].baseHouseCost = 1000;
@@ -145,6 +152,7 @@ void initBoard(Square *squares){
     strcpy(squares[16].name, "Negombo");
     squares[16].type = SQ_PROPERTY;
     squares[16].group = Group_Orange;
+    squares[16].propertyIndex = 8; //Index of the associated property
     squares[16].basePurchasePrice = 4500;
     squares[16].baseMortgageValue = 2250;
     squares[16].baseHouseCost = 1250;
@@ -157,6 +165,7 @@ void initBoard(Square *squares){
     strcpy(squares[18].name, "Katunayake");
     squares[18].type = SQ_PROPERTY;
     squares[18].group = Group_Orange;
+    squares[18].propertyIndex = 8; //Index of the associated property
     squares[18].basePurchasePrice = 4700;
     squares[18].baseMortgageValue = 2250;
     squares[18].baseHouseCost = 1250;
@@ -166,6 +175,7 @@ void initBoard(Square *squares){
     strcpy(squares[19].name, "Ja-Ela");
     squares[19].type = SQ_PROPERTY;
     squares[19].group = Group_Orange;
+    squares[19].propertyIndex = 9; //Index of the associated property   
     squares[19].basePurchasePrice = 5000;
     squares[19].baseMortgageValue = 2250;
     squares[19].baseHouseCost = 1250;
@@ -178,6 +188,7 @@ void initBoard(Square *squares){
     strcpy(squares[21].name, "Kandy City");
     squares[21].type = SQ_PROPERTY;
     squares[21].group = Group_Red;
+    squares[21].propertyIndex = 10; //Index of the associated property  
     squares[21].basePurchasePrice = 5500;
     squares[21].baseMortgageValue = 2750;
     squares[21].baseHouseCost = 1500;
@@ -190,6 +201,7 @@ void initBoard(Square *squares){
     strcpy(squares[23].name, "Peradeniya");
     squares[23].type = SQ_PROPERTY;
     squares[23].group = Group_Red;
+    squares[23].propertyIndex = 11; //Index of the associated property
     squares[23].basePurchasePrice = 5800;
     squares[23].baseMortgageValue = 2750;
     squares[23].baseHouseCost = 1500;
@@ -199,6 +211,7 @@ void initBoard(Square *squares){
     strcpy(squares[24].name, "Katugastota");
     squares[24].type = SQ_PROPERTY;
     squares[24].group = Group_Red;
+    squares[24].propertyIndex = 12; //Index of the associated property
     squares[24].basePurchasePrice = 6000;
     squares[24].baseMortgageValue = 2750;
     squares[24].baseHouseCost = 1500;
@@ -214,6 +227,7 @@ void initBoard(Square *squares){
     strcpy(squares[26].name, "Galle Fort");
     squares[26].type = SQ_PROPERTY;
     squares[26].group = Group_Yellow;
+    squares[26].propertyIndex = 13; //Index of the associated property
     squares[26].basePurchasePrice = 6500;
     squares[26].baseMortgageValue = 3250;
     squares[26].baseHouseCost = 2000;
@@ -223,6 +237,7 @@ void initBoard(Square *squares){
     strcpy(squares[27].name, "Unawatuna");
     squares[27].type = SQ_PROPERTY;
     squares[27].group = Group_Yellow;
+    squares[27].propertyIndex = 14; //Index of the associated property
     squares[27].basePurchasePrice = 6800;
     squares[27].baseMortgageValue = 3250;
     squares[27].baseHouseCost = 2000;
@@ -237,6 +252,7 @@ void initBoard(Square *squares){
     strcpy(squares[29].name, "Hikkaduwa");
     squares[29].type = SQ_PROPERTY;
     squares[29].group = Group_Yellow;
+    squares[29].propertyIndex = 15; //Index of the associated property
     squares[29].basePurchasePrice = 7000;
     squares[29].baseMortgageValue = 3250;
     squares[29].baseHouseCost = 2000;
@@ -249,6 +265,7 @@ void initBoard(Square *squares){
     strcpy(squares[31].name, "Jaffna Town");
     squares[31].type = SQ_PROPERTY;
     squares[31].group = Group_Green;
+    squares[31].propertyIndex = 16; //Index of the associated property
     squares[31].basePurchasePrice = 8000;
     squares[31].baseMortgageValue = 4000;
     squares[31].baseHouseCost = 2500;
@@ -258,6 +275,7 @@ void initBoard(Square *squares){
     strcpy(squares[32].name, "Nallur");
     squares[32].type = SQ_PROPERTY;
     squares[32].group = Group_Green;
+    squares[32].propertyIndex = 17; //Index of the associated property
     squares[32].basePurchasePrice = 8300;
     squares[32].baseMortgageValue = 4000;
     squares[32].baseHouseCost = 2500;
@@ -270,6 +288,7 @@ void initBoard(Square *squares){
     strcpy(squares[34].name, "Trincomalee");
     squares[34].type = SQ_PROPERTY;
     squares[34].group = Group_Green;
+    squares[34].propertyIndex = 18; //Index of the associated property
     squares[34].basePurchasePrice = 8500;
     squares[34].baseMortgageValue = 4000;
     squares[34].baseHouseCost = 2500;
@@ -288,6 +307,7 @@ void initBoard(Square *squares){
     strcpy(squares[37].name, "Nuwara Eliya");
     squares[37].type = SQ_PROPERTY;
     squares[37].group = Group_DarkBlue;
+    squares[37].propertyIndex = 19; //Index of the associated property
     squares[37].basePurchasePrice = 10000;
     squares[37].baseMortgageValue = 5000;
     squares[37].baseHouseCost = 3000;
@@ -300,6 +320,7 @@ void initBoard(Square *squares){
     strcpy(squares[39].name, "Galle Face");
     squares[39].type = SQ_PROPERTY;
     squares[39].group = Group_DarkBlue;
+    squares[39].propertyIndex = 20; //Index of the associated property
     squares[39].basePurchasePrice = 12000;
     squares[39].baseMortgageValue = 5000;
     squares[39].baseHouseCost = 3000;
