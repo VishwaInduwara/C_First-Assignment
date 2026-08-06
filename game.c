@@ -29,23 +29,27 @@ void determineTurnOrder(Player *players,int turnOrder[]){
     playerDice(players);
 
     int tie = 0;
-
+    
     do{
         tie = 0;
-        //check for dublicates
+        int tied[MAX_PLAYERS] = {0}; //Array to store the indices of tied players
+
+        //Find ties
         for(int i = 0; i < MAX_PLAYERS; i++){
             for(int j = i+1; j < MAX_PLAYERS; j++){
-
                 if(players[i].playerrolls == players[j].playerrolls){
                     tie = 1;
-
-                    //roll again for the tied players
-                    players[i].playerrolls = rollDice();
-                    players[j].playerrolls = rollDice();
-                    
-                    printf("%s rolled again: %d\n", players[i].name, players[i].playerrolls);
-                    printf("%s rolled again: %d\n", players[j].name, players[j].playerrolls);
+                    tied[i] = 1;
+                    tied[j] = 1;
                 }
+            }
+        }
+
+        //Reroll for tied players
+        for(int i = 0; i < MAX_PLAYERS; i++){
+            if(tied[i]){
+                players[i].playerrolls = rollDice();
+                printf("%s rolled again: %d\n", players[i].name, players[i].playerrolls);
             }
         }
     }while(tie != 0);
@@ -72,6 +76,46 @@ void determineTurnOrder(Player *players,int turnOrder[]){
         turnOrder[maxIndex] = tempRoll;
     }
     printf("%s will begin the game.\n",players[turnOrder[0]].name);
+    printf("\n");
 
     
+}
+
+//500 Round
+void runGame(Player *players,int turnOrder[]){
+    int currentRound = 0;
+    int gameOver = 0; //if 1 game ends
+
+    while(/*!gameOver &&*/ currentRound < 5 ){
+
+        for(int i = 0;i < MAX_PLAYERS; i++){
+            int currentPlayerIndex = turnOrder[i];
+
+           /*if(players[currentPlayerIndex].isBankrupt == 1){
+                continue;
+            }*/
+
+            int diceRoll = rollDice();
+            printf("%s rolled %d\n",players[currentPlayerIndex].name,diceRoll);
+
+            movePlayer(players,currentPlayerIndex,diceRoll);
+        }
+
+        int allCompleted = 1;//we assume everyone completed
+        for(int i = 0;i < MAX_PLAYERS; i++){
+            if(players[i].isRoundCompleted==0){
+                allCompleted = 0;
+                break;
+            }
+        }
+            if(allCompleted == 1){
+            currentRound ++;
+            printf("Current Round: %d\n\n",currentRound);
+
+            //Reset for next round
+            for(int i = 0;i < MAX_PLAYERS; i++){
+                players[i].isRoundCompleted = 0;
+            }
+        }
+    }
 }

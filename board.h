@@ -8,4 +8,6 @@ void initBoard(Square *squares);//prototype for the function that initializes th
 //this function exists,here's how to call it
 //game.c need realtime update of the board, so we need to pass the board as a pointer to the functions that modify it
 
+void movePlayer(Player *players, int currentPlayerIndex,int diceRoll);
+
 #endif // BOARD_H

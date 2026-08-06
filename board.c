@@ -1,4 +1,5 @@
 #include <string.h>
+#include<stdio.h>
 
 #include "board.h"
 #include "types.h"
@@ -68,7 +69,7 @@ void initBoard(Square *squares){
 
     strcpy(squares[5].name, "Colombo Fort Railway Station");
     squares[5].type = SQ_RAILWAY;
-    squares[5].basePurchasePrice = 2000;
+    squares[5].basePurchasePrice = 1500;
     squares[5].baseMortgageValue = 1000;
     squares[5].baseRent = 250;
 
@@ -145,7 +146,7 @@ void initBoard(Square *squares){
 
     strcpy(squares[15].name, "Kandy Railway Station");
     squares[15].type = SQ_RAILWAY;
-    squares[15].basePurchasePrice = 2000;
+    squares[15].basePurchasePrice = 1500;
     squares[15].baseMortgageValue = 1000;
     squares[15].baseRent = 250;
 
@@ -220,7 +221,7 @@ void initBoard(Square *squares){
 
     strcpy(squares[25].name, "Galle Railway Station");
     squares[25].type = SQ_RAILWAY;
-    squares[25].basePurchasePrice = 2000;
+    squares[25].basePurchasePrice = 1500;
     squares[25].baseMortgageValue = 1000;
     squares[25].baseRent = 250;
 
@@ -297,7 +298,7 @@ void initBoard(Square *squares){
 
     strcpy(squares[35].name, "Jaffna Railway Station");
     squares[35].type = SQ_RAILWAY;
-    squares[35].basePurchasePrice = 2000;
+    squares[35].basePurchasePrice = 1500;
     squares[35].baseMortgageValue = 1000;
     squares[35].baseRent = 250;
 
@@ -328,6 +329,22 @@ void initBoard(Square *squares){
     squares[39].baseRent = 1200;
 }
 
+void movePlayer(Player *players, int currentPlayerIndex,int diceRoll){
+    printf("MovePlayer called\n");
+    int oldPosition = players[currentPlayerIndex].position;
+    int newPosition = (players[currentPlayerIndex].position + diceRoll)%40;
+    players[currentPlayerIndex].position = newPosition;
+
+    if (newPosition < oldPosition){
+        players[currentPlayerIndex].isRoundCompleted = 1;
+        players[currentPlayerIndex].cash += 2000;
+
+        printf("\n");
+        printf("%s passed Go.\n",players[currentPlayerIndex].name);
+        printf("Collected LKR 2000\n");
+        printf("Current Balance : LKR %d\n",players[currentPlayerIndex].cash);
+    }
+}
 
 
 

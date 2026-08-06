@@ -26,6 +26,7 @@ int main() {
     initPlayers(players);
 
     determineTurnOrder(players, turnOrder);
+    runGame(players,turnOrder);
        /*for (int i = 0; i < BOARD_SIZE; i++) {
            printf("Square %d: %s, Type: %d, Group: %d\n", squares[i].index, squares[i].name, squares[i].type, squares[i].group);
        }*/

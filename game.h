@@ -6,5 +6,6 @@
 int rollDice(void);
 void playerDice(Player *players);
 void determineTurnOrder(Player *players,int turnOrder[]);
+void runGame(Player *players,int turnOrder[]);
 
 #endif // GAME_H

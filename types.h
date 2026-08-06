@@ -111,6 +111,8 @@ typedef struct{
     int hasActiveLoan; //0 or 1
 
     int isBankrupt; //0 or 1
+
+    int isRoundCompleted; //0 or 1
 } Player;
 
 typedef struct{
