@@ -41,3 +41,27 @@ void initPlayers(Player *players){
     strcpy(players[3].name, "Opportunist Trader");
     players[3].strategy = STRATEGY_OPPORTUNISTIC_TRADER;
 }
+
+int shouldBuyProperty(Player *p,Square *square){ //p and square because we need only one player details
+    switch (p->strategy){
+         case STRATEGY_AGGRESSIVE_INVESTOR:
+            // "Always purchases an unowned property if sufficient funds remain to pay at least one future rent."
+            return (p->cash - square->basePurchasePrice) >= square->baseRent;
+
+        case STRATEGY_CONSERVATIVE_BANKER:
+            // "Purchases properties only if at least 50% of current cash remains after purchase."
+            return (p->cash - square->basePurchasePrice) >= (p->cash / 2);
+
+        case STRATEGY_RISK_TAKER:
+            // "Purchases every available property whenever legally possible."
+            return p->cash >= square->basePurchasePrice;
+
+        case STRATEGY_OPPORTUNISTIC_TRADER:
+            // "Purchases properties only when projected appreciation exceeds construction costs."
+            // (simplify for now - refine later once you have appreciation logic)
+            return p->cash >= square->basePurchasePrice;
+
+        default:
+            return 0;
+    }
+}

@@ -5,6 +5,7 @@
 #include "types.h"
 #include "board.h"
 #include "players.h"
+#include "finance.h"
 //void playerDice(void);
 int rollDice(){
 
@@ -75,18 +76,66 @@ void determineTurnOrder(Player *players,int turnOrder[]){
         turnOrder[i] = turnOrder[maxIndex];
         turnOrder[maxIndex] = tempRoll;
     }
-    printf("%s will begin the game.\n",players[turnOrder[0]].name);
-    printf("\n");
+    printf("%s will begin the game.\n\n",players[turnOrder[0]].name);
+    printf("Turn order:\n");
 
-    
+    for(int i = 0;i<MAX_PLAYERS; i++){
+        printf("%s\n",players[turnOrder[i]].name);
+    }
+    printf("\n\n");
+    printf("----------------------------------\n");
+}
+
+
+//Landing resoultion
+void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int diceRoll){
+
+            Square *landedSquare = &squares[players[currentPlayerIndex].position];
+
+            if (landedSquare->type == SQ_PROPERTY || landedSquare->type == SQ_RAILWAY || landedSquare->type == SQ_UTILITY) {
+
+                if (landedSquare->owner == -1) {
+                    printf("%s landed on %s (unowned). Price: LKR %d\n",
+                        players[currentPlayerIndex].name, landedSquare->name, landedSquare->basePurchasePrice);
+
+                    if (shouldBuyProperty(&players[currentPlayerIndex],landedSquare)) {
+                        players[currentPlayerIndex].cash -= landedSquare->basePurchasePrice;
+                        landedSquare->owner = currentPlayerIndex;
+                        printf("%s purchased %s for LKR %d.\n", players[currentPlayerIndex].name, landedSquare->name, landedSquare->basePurchasePrice);
+                        printf("Remaining Balance : LKR %d.\n", players[currentPlayerIndex].cash);
+                    }else {
+                        printf("%s decline to purchase %s\n",players[currentPlayerIndex].name,landedSquare);
+                    }
+
+                } else if (landedSquare->owner == currentPlayerIndex) {
+                    printf("%s landed on their own property, %s.\n", players[currentPlayerIndex].name, landedSquare->name);
+
+                } else {
+                    if (!landedSquare->isMortgaged) {
+                        int rent = calculateRent(landedSquare , squares , diceRoll);
+
+                        players[currentPlayerIndex].cash -= rent;
+                        players[landedSquare->owner].cash += rent;
+
+                        printf("%s landed on %s.\n", players[currentPlayerIndex].name, landedSquare->name);
+                        printf("Rent Paid : LKR %d.\n", rent);
+                        printf("Owner : %s.\n", players[landedSquare->owner].name);
+                    }
+                }
+            } else if(landedSquare->type == SQ_TAX){
+                payTax(&players[currentPlayerIndex], squares[4].baseRent);
+            } else {
+                printf("%s landed on %s (not yet handled).\n", players[currentPlayerIndex].name, landedSquare->name);
+            }
+        
 }
 
 //500 Round
-void runGame(Player *players,int turnOrder[]){
+void runGame(Player *players,int turnOrder[],Square *squares){
     int currentRound = 0;
     int gameOver = 0; //if 1 game ends
 
-    while(/*!gameOver &&*/ currentRound < 5 ){
+    while(/*!gameOver &&*/ currentRound < 1 ){
 
         for(int i = 0;i < MAX_PLAYERS; i++){
             int currentPlayerIndex = turnOrder[i];
@@ -94,11 +143,16 @@ void runGame(Player *players,int turnOrder[]){
            /*if(players[currentPlayerIndex].isBankrupt == 1){
                 continue;
             }*/
-
+            int oldPosition = players[currentPlayerIndex].position;
             int diceRoll = rollDice();
             printf("%s rolled %d\n",players[currentPlayerIndex].name,diceRoll);
+            printf("%s moves from Square %d to Square %d\n\n",players[currentPlayerIndex].name,oldPosition,(oldPosition+diceRoll)%40);
 
             movePlayer(players,currentPlayerIndex,diceRoll);
+
+            resolveLanding(players,currentPlayerIndex,squares,diceRoll);
+
+
         }
 
         int allCompleted = 1;//we assume everyone completed
@@ -119,3 +173,4 @@ void runGame(Player *players,int turnOrder[]){
         }
     }
 }
+

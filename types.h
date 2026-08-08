@@ -4,6 +4,7 @@
 #define BOARD_SIZE 40
 #define MAX_PLAYERS 4
 
+
 //Enums
 
 typedef enum{

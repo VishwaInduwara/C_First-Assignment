@@ -66,6 +66,7 @@ void initBoard(Square *squares){
 
     strcpy(squares[4].name, "Income Tax");
     squares[4].type = SQ_TAX;
+    squares[4].baseRent = 2000; //Not given
 
     strcpy(squares[5].name, "Colombo Fort Railway Station");
     squares[5].type = SQ_RAILWAY;
@@ -329,6 +330,7 @@ void initBoard(Square *squares){
     squares[39].baseRent = 1200;
 }
 
+//player moves
 void movePlayer(Player *players, int currentPlayerIndex,int diceRoll){
     printf("MovePlayer called\n");
     int oldPosition = players[currentPlayerIndex].position;
@@ -342,7 +344,7 @@ void movePlayer(Player *players, int currentPlayerIndex,int diceRoll){
         printf("\n");
         printf("%s passed Go.\n",players[currentPlayerIndex].name);
         printf("Collected LKR 2000\n");
-        printf("Current Balance : LKR %d\n",players[currentPlayerIndex].cash);
+        printf("Current Balance : LKR %d\n\n",players[currentPlayerIndex].cash);
     }
 }
 
