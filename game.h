@@ -8,5 +8,9 @@ void playerDice(Player *players);
 void determineTurnOrder(Player *players,int turnOrder[]);
 void runGame(Player *players,int turnOrder[],Square *squares);
 void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int diceRoll);
+int resolveJailTurn(Player *p);
+void handleBankSquare(int playerIndex,Player *p,Square *squares);
+void calculateNetWorth(Player *players,Square *squares);
+void tryBuildMonopolies(Player *p , int playerIndex , Square *squares);
 
 #endif // GAME_H

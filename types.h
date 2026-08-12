@@ -3,6 +3,12 @@
 
 #define BOARD_SIZE 40
 #define MAX_PLAYERS 4
+#define MAX_ROUND 500
+
+// Loan Trigger Thresholds (based on LKR 30,000 starting capital)
+#define LOAN_THRESHOLD_AGGRESSIVE     15000  // 50% of starting cash
+#define LOAN_THRESHOLD_OPPORTUNISTIC   5000  // Safe liquidity buffer
+#define LOAN_THRESHOLD_CONSERVATIVE    2000  // Imminent bankruptcy safety line
 
 
 //Enums
@@ -32,6 +38,7 @@ typedef enum{
 }PropertyGroup;
 
 typedef enum{
+    PropertyType_NONE ,
     PropertyType_Regular ,
     PropertyType_Railway ,
     PropertyType_Utility ,
@@ -68,6 +75,7 @@ typedef struct{
     //Identity
     int index;
     char name[50];
+
     int propertyIndex; //-1 for non-property squares
     SquareType type;
     PropertyGroup group;
@@ -96,6 +104,7 @@ typedef struct{
 
 
 typedef struct{
+    int index;
     char name[50];
     PlayerStrategy strategy;
     int position; //0-39,current square index
@@ -105,15 +114,23 @@ typedef struct{
 
     int ownedProperties[28]; //Array of property indices owned by the player
     int numOwnedProperties; //Number of properties owned by the player
+    int numHotelCount;
 
     int inJail; //0 or 1
     int jailTurnsRemaining;//after 3 turns, player is released from jail
 
     int hasActiveLoan; //0 or 1
+    int hasMonopoly;//0 or 1
+
+    int loanAmount;
+    int loanTurnsRemaining;
 
     int isBankrupt; //0 or 1
 
     int isRoundCompleted; //0 or 1
+
+    int totalPropertyValue;
+    int netWorth;
 } Player;
 
 typedef struct{
