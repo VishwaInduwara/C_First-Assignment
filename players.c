@@ -98,6 +98,71 @@ int shouldTakeLoan(Player *p,int maxLoanAvailable,Square *squares){
     }
 }
 
+
+// Returns: 0 = repay
+//          1 = extend
+//          2 = increase loan amount
+//          3 = do nothing
+int shouldRepayLoan(Player *p){
+    if(!p -> hasActiveLoan){
+        return 0;
+    }
+    switch(p -> strategy){
+        case STRATEGY_AGGRESSIVE_INVESTOR:
+            if(p -> cash > (p -> loanAmount * 2)){
+                return 0; //
+            }
+            return 2; //Increase loan amount if cash is less than double the loan amount
+
+        case STRATEGY_CONSERVATIVE_BANKER:
+            if(p -> cash > (p -> loanAmount)){
+                return 0; //Repay full loan if cash is more than the loan amount
+            }
+            return 1;
+
+        case STRATEGY_RISK_TAKER:
+            return 2;//Always try to increase Loan amount
+
+        case STRATEGY_OPPORTUNISTIC_TRADER:
+            if(p -> cash > (p -> loanAmount)){
+                return 0; //Repay full loan if cash is more than the loan amount
+            }
+            return 1;
+
+        default:
+            return 0;
+    }
+}
+
+int decideRepaymentAmount(Player *p){
+    if(!p -> hasActiveLoan){
+        return 0;
+    }
+    switch(p->strategy){
+        case STRATEGY_AGGRESSIVE_INVESTOR:
+            if(p->cash > (p->loanAmount * 2)){
+                return p->loanAmount; //Repay full loan if cash is more than double the loan amount
+            }
+            return 0; //No repayment if cash is less than double the loan amount
+
+        case STRATEGY_CONSERVATIVE_BANKER:
+            if(p->cash > (p->loanAmount)){
+                return p->loanAmount; //Repay full loan if cash is more than the loan amount
+            }
+            return p->cash/2; //Repay half the cash if cash is less than the loan amount
+        case STRATEGY_RISK_TAKER:
+            return 0; //No repayment, always try to increase loan amount
+
+        case STRATEGY_OPPORTUNISTIC_TRADER:
+            if(p->cash > (p->loanAmount)){
+                return p->loanAmount; //Repay full loan if cash is more than the loan amount
+            }
+            return 0; //No repayment if cash is less than the loan amount
+    
+        default:
+            return 0;
+    }
+}
 //Check every turn of player is he has monopoly
 int hasMonopoly(int playerIndex , Square *squares, PropertyGroup group){
     int groupCount = 0;
@@ -135,5 +200,23 @@ int shouldBuild(Player *p){
 
         default:
             return 0;
+    }
+}
+
+//Player strategy for Auction
+int wantsToBid(Player *p,Square *square, int bidAmount){
+    switch(p -> strategy){
+        case STRATEGY_AGGRESSIVE_INVESTOR:
+            return bidAmount <= (square -> marketPrice *1.2); //Bids upto 120%
+
+        case STRATEGY_CONSERVATIVE_BANKER:
+            return bidAmount <= (square -> marketPrice); //Bidding below market value
+
+        case STRATEGY_RISK_TAKER:
+            return p -> cash >= bidAmount;
+
+        case STRATEGY_OPPORTUNISTIC_TRADER:
+            return bidAmount < (square -> marketPrice);
+
     }
 }

@@ -9,7 +9,7 @@
 
 void initBoard(Square *squares){
 
-    for(int i = 0; i < BOARD_SIZE; i++){
+     for(int i = 0; i < BOARD_SIZE; i++){
         
         //Identity
         squares[i].index = i;
@@ -37,6 +37,7 @@ void initBoard(Square *squares){
         squares[i].insurancePolicyType = None_Insurance;
         squares[i].insuranceRoundsRemaining = 0;
     }
+    
     strcpy(squares[0].name, "GO");
     squares[0].type = SQ_START;
 
@@ -355,6 +356,12 @@ void initBoard(Square *squares){
     squares[39].baseHouseCost = 3000;
     squares[39].baseHotelCost = 12000;
     squares[39].baseRent = 1200;
+
+    for(int i = 0; i < BOARD_SIZE; i++){
+        squares[i].marketPrice = squares[i].basePurchasePrice;
+    }
+
+   
 }
 
 //player moves

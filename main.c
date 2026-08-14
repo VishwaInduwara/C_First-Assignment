@@ -21,13 +21,13 @@ int main() {
     Square squares[BOARD_SIZE]; //Array of 40 squares on the board
     Player players[MAX_PLAYERS]; //Array of players in the game
     int turnOrder[MAX_PLAYERS]; //Array to store the turn order of players
+    GameState game = {0}; //Initialize all numbers to zero
 
     initBoard(squares);
     initPlayers(players);
 
+
     determineTurnOrder(players, turnOrder);
-    runGame(players,turnOrder,squares);
-       /*for (int i = 0; i < BOARD_SIZE; i++) {
-           printf("Square %d: %s, Type: %d, Group: %d\n", squares[i].index, squares[i].name, squares[i].type, squares[i].group);
-       }*/
+    runGame(players,turnOrder,squares,&game);
+
 }

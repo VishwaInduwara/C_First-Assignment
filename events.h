@@ -3,4 +3,6 @@
 
 #include "types.h"
 
+void updateMarketBoomDecline(GameState *game);
+
 #endif

@@ -90,6 +90,7 @@ typedef struct{
 
     //Current
     int owner; //-1 for unowned or Bank
+    int marketPrice; //After inflation
     int numHouses; //0-4 , only hasHotel == 0
     int hasHotel; //0 for no hotel, 1 for hotel
     int isMortgaged; //0 or 1
@@ -123,7 +124,7 @@ typedef struct{
     int hasMonopoly;//0 or 1
 
     int loanAmount;
-    int loanTurnsRemaining;
+    int loanTurnsRemaining;//number of turns left to repay the loan(20)
 
     int isBankrupt; //0 or 1
 
@@ -143,25 +144,25 @@ typedef struct{
     int isActive; //0 or 1
 } Loan;
 
-/*typedef struct{
-    Square squares[40]; //Array of 40 squares on the board
-    Square properties[28]; //Array of 28 properties on the board
-    Player players[MAX_PLAYERS]; //Array of players in the game
-    Loan loans[MAX_PLAYERS]; //One loan for one player at a time
-
+typedef struct{
     int currentRound;
-    int currentInflationRate; //Percentage
-    int currentLoanInterestRate; //Percentage
-
+    float currentInflactionRate;
+    float currentLoanInterest;
     PropertyGroup boomedGroup; //The property group that is currently booming
     int boomRoundsRemaining; //Rule-LK 30/31
+
     PropertyGroup declinedGroup; //The property group that is currently declining
     int declineRoundsRemaining; //Rule-LK 30/31
+
+    PropertyGroup lastBoomedGroup;
+    PropertyGroup lastDeclinedGroup;
+    int boomCooldown[8];//array is used to remember how many rounds each property group must wait before it can boom again(30 rounds)
+    int declineCooldown[8];
 
     int activeRegionalCard; //-1=none
     int regionalCardRoundsRemaining; //Number of rounds remaining for the active regional card effect
 
     int gameOver; //0 or 1
-} GameState;*/
+} GameState;
 
 #endif // TYPES_H
