@@ -7,6 +7,7 @@
 #include "players.h"
 #include "finance.h"
 #include "events.h"
+#include "game.h"
 //void playerDice(void);
 int rollDice(){
 
@@ -134,6 +135,7 @@ void handleBankSquare(int playerIndex,Player *p,Square *squares,GameState *game)
 
     //Strategy decision from players.c
     if(shouldTakeLoan(p,maxLoan,squares)){
+        
         p -> cash += maxLoan;
         p -> hasActiveLoan = 1;
         p -> loanAmount = maxLoan;
@@ -174,9 +176,9 @@ void runAuction(Player *players , Square *square,GameState *game,Square *squares
         currentBid = (currentBid * 100)/100; //Rule LK 31
     }
 
-    int newBid = currentBid;
+    
 
-    printf("\n-----------------\n");
+    printf("\n--------------------\n");
     printf("Auction Started\n");
     printf("\n--------------------\n");
 
@@ -193,10 +195,12 @@ void runAuction(Player *players , Square *square,GameState *game,Square *squares
                 continue;
             }
             
+            int newBid = currentBid + 250;//Rule LK 20
+
             //Call wantstoBid function in player.c
-            if(wantsToBid(&players[i],square,newBid)){
+            if(wantsToBid(&players[i],square,newBid)&& players[i].cash >= newBid){//Rule LK 22
                 if(players[i].cash >=newBid){//Rule LK 22
-                    newBid = currentBid + 250;//Rule LK 20
+                    //newBid = currentBid + 250;//Rule LK 20
                     currentBid = newBid;
                     highestBidder = i;
                     printf("%s Bids LKR %d\n",players[i].name,currentBid);
@@ -264,16 +268,23 @@ void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int d
 
                 } else {
                     if (!landedSquare->isMortgaged) {
-                        int rent = calculateRent(landedSquare , squares , diceRoll,game);
+                        if(landedSquare->isDamaged){
+                        
+                            printf("%s landed on %s, but the property is damaged and cannot collect rent.\n", players[currentPlayerIndex].name, landedSquare->name);
+                        
+                        }else{
+                        
+                            int rent = calculateRent(landedSquare , squares , diceRoll,game);
 
-                        players[currentPlayerIndex].cash -= rent;
-                        players[landedSquare->owner].cash += rent;
+                            players[currentPlayerIndex].cash -= rent;
+                            players[landedSquare->owner].cash += rent;
 
-                        checkBankruptcy(&players[currentPlayerIndex],currentPlayerIndex,squares);
+                            checkBankruptcy(&players[currentPlayerIndex],currentPlayerIndex,squares);
 
-                        printf("%s landed on %s.\n", players[currentPlayerIndex].name, landedSquare->name);
-                        printf("Rent Paid : LKR %d.\n", rent);
-                        printf("Owner : %s.\n", players[landedSquare->owner].name);
+                            printf("%s landed on %s.\n", players[currentPlayerIndex].name, landedSquare->name);
+                            printf("Rent Paid : LKR %d.\n", rent);
+                            printf("Owner : %s.\n", players[landedSquare->owner].name);
+                        }
                     }
                 }
             } else if(landedSquare->type == SQ_TAX){
@@ -299,8 +310,16 @@ void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int d
 
                 handleBankSquare(currentPlayerIndex, &players[currentPlayerIndex],squares,game);
 
-            }else {
-                printf("%s landed on %s (not yet handled).\n", players[currentPlayerIndex].name, landedSquare->name);
+            }else if(landedSquare->type == SQ_INSURANCE){
+                for(int i = 0; i < MAX_PLAYERS; i++) {
+                    if(squares[i].owner == currentPlayerIndex && squares[i].insurancePolicyType == None_Insurance){
+                        int choice = decideInsurancePolicy(&players[currentPlayerIndex], &squares[i]); //Call the function from players.c to decide insurance policy
+                        if(choice > 0){
+                            purchaseInsurance(&players[currentPlayerIndex], &squares[i],choice); //Call the function from finance.c to purchase insurance
+                            break; // Only allow one insurance purchase per turn
+                        }
+                    }
+                }
             }
         
 }
@@ -350,6 +369,7 @@ int resolveJailTurn(Player *p){
     if(p -> jailTurnsRemaining <= 0){
         printf("%s has served their time and is released from Jail.\n", p ->name);
         p -> inJail =0;
+        return 0; //Player released from jail
     }
     return 1;
 }
@@ -394,6 +414,10 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
         for(int i = 0;i < MAX_PLAYERS; i++){
             int currentPlayerIndex = turnOrder[i];
 
+            if(players[currentPlayerIndex].isRoundCompleted == 1){
+                continue; //Player has already completed their turn
+            }
+
             if(resolveJailTurn(&players[currentPlayerIndex])==1){
                 continue; //Still in jail , skip rest of this turn
             }
@@ -418,14 +442,20 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
 
         }
 
-       //Check if all players have completed their turn , if not break the loop and continue to next player
+        //A round is finisihed only when every non-bankrupt player has completed their turn
+        int roundCompleted = 1;
         for(int i = 0;i < MAX_PLAYERS; i++){
-            if(players[i].isRoundCompleted==0){
-              
-                break;
+            if(!players[i].isBankrupt && players[i].isRoundCompleted == 0){
+                roundCompleted = 0;
             }
         }
+
+        //If round is not completed, continue to next player
+        if(!roundCompleted){
+            continue; //Not all players have completed their turn, continue to next player
+        }
         
+        //Loan Handling and Bankruptcy Check
         for(int i = 0;i < MAX_PLAYERS; i++){
             if(players[i].hasActiveLoan == 1){
                 players[i].loanAmount += (int)(players[i].loanAmount * game ->currentLoanInterest);
@@ -465,6 +495,46 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
             }
         }
 
+        for(int i = 0;i < MAX_PLAYERS; i++){
+            if(squares[i].insurancePolicyType != None_Insurance){
+                squares[i].insuranceRoundsRemaining--;
+                if(squares[i].insuranceRoundsRemaining == 3){
+                    printf("Insurance policy for %s is about to expire in 3 rounds.\n",squares[i].name);
+                }
+                if(squares[i].insuranceRoundsRemaining <= 0){
+                    printf("Insurance policy for %s has expired.\n",squares[i].name);
+                    squares[i].insurancePolicyType = None_Insurance;
+                    squares[i].insuranceRoundsRemaining = 0;
+                }
+            }
+        }
+        
+        //Automatic Repair when owner has sufficient cash
+        for(int i = 0;i<BOARD_SIZE;i++){
+            if(squares[i].isDamaged){
+                int ownerIndex = squares[i].owner;
+                if(ownerIndex != -1){
+                    int repairCost = squares[i].marketPrice;
+                    if(squares[i].hasHotel){
+                        repairCost += squares[i].baseHotelCost;
+                    }else if(squares[i].numHouses > 0){
+                        repairCost += squares[i].numHouses * squares[i].baseHouseCost;
+                    }
+                    if(players[ownerIndex].cash >= repairCost){
+                        players[ownerIndex].cash -= repairCost;
+                        squares[i].isDamaged = 0;
+                        printf("%s repaired %s, Repair Cost: LKR %d.\n", players[ownerIndex].name, squares[i].name, repairCost);
+                    }
+                }
+            }
+        }
+
+        //runs only every 10 rounds
+       /* if(currentRound % 10 == 0){
+            //TODO disaster
+        }*/
+
+        //if only one player is solvent, game ends
         int solventCount = 0;
         for(int i = 0;i<MAX_PLAYERS;i++){
             if(!players[i].isBankrupt){
@@ -482,6 +552,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
             //Call Inflaction function in finance.c
             if(currentRound %10 == 0){
                 calculateInflation(squares,currentRound,game);
+                triggerDisaster(players,squares); //Call the function to trigger a disaster event
             }
             printf("Current Round: %d\n\n",currentRound);
 

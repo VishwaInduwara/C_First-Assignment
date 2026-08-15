@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #include "types.h"
-
+#include "finance.h"
 
 // Rent Calculation
 int calculateRent(Square *landedSquare, Square *squares, int diceRoll,GameState *game) {
@@ -117,6 +117,7 @@ void payTax(Player *p, int taxAmount,int currentPlayerIndex,Square *squares) {
         printf("Remaining Balance : LKR %d.\n", p->cash);
 
     } else {
+        p->cash -= taxAmount; // This will make cash negative
         printf("%s cannot afford Income Tax!\n", p->name);
     }
 
@@ -127,7 +128,7 @@ int calculateMaxLoan(int playerIndex,Square *squares,GameState *game){
     int totalMortgageValue = 0;
 //Must be owned by player and not currently mortgaged 
     for (int i=0 ; i<BOARD_SIZE ; i++){
-         if(squares[i].owner == playerIndex && !squares[i].isLoanLocked){
+         if(squares[i].owner == playerIndex){
             if(squares[i].group == game -> boomedGroup && game -> boomRoundsRemaining > 0){
                 totalMortgageValue += (squares[i].baseMortgageValue * 115)/100; //Rule LK 31
             }else if(squares[i].group == game -> declinedGroup && game -> declineRoundsRemaining > 0){
@@ -317,4 +318,36 @@ void calculateInflation(Square *squares,int currentRound,GameState *game){
     for(int i=0 ; i<BOARD_SIZE;i++){
         squares[i].marketPrice = (int)((squares[i].marketPrice)*(1+InflationRate));
     }
+}
+
+void purchaseInsurance(Player *p, Square *square, int policyChoice){
+    if(policyChoice == 0){
+        printf("%s chose not to purchase insurance\n", p->name);
+        return;
+    }
+    
+    int premium = 0;
+    PolicyType type;
+    
+    if(policyChoice == 1){
+        premium = (int)(square->marketPrice * 0.05);
+        type = Basic_Insurance;
+    }else if(policyChoice == 2){
+        premium = (int)(square->marketPrice * 0.1);
+        type = Comprehensive_Insurance;
+    }else{
+        type = Business_Interruption_Insurance;
+        premium = (int)(square->marketPrice * 0.15);
+    }
+
+    if(p -> cash < premium){
+    printf("%s cannot afford the insurance premium\n", p->name);
+        return;
+    }
+
+    p -> cash -= premium;
+    square -> insurancePolicyType = type;
+    square -> insuranceRoundsRemaining = 20; //Insurance lasts for 20 rounds
+
+    printf("%s purchased insurance for %s. Premium paid: LKR %d\n", p->name, square->name, premium);
 }

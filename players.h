@@ -17,4 +17,6 @@ int hasMonopoly(int playerIndex , Square *squares, PropertyGroup group);
 int shouldBuild(Player *p);
 int wantsToBid(Player *p,Square *square, int bidAmount);
 
+int decideInsurancePolicy(Player *p,Square *square);
+
 #endif // PLAYERS_H

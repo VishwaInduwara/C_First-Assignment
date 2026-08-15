@@ -19,6 +19,7 @@ void initPlayers(Player *players){
         players[i].hasActiveLoan = 0; // No active loan
         players[i].hasMonopoly = 0;
         
+        players[i].isRoundCompleted = 0; // Round not completed
         players[i].isBankrupt = 0; // Not bankrupt
         players[i].loanAmount = 0;
         players[i].loanTurnsRemaining = 0;
@@ -52,20 +53,20 @@ int shouldBuyProperty(Player *p,Square *square){ //p and square because we need 
     switch (p->strategy){
          case STRATEGY_AGGRESSIVE_INVESTOR:
             // "Always purchases an unowned property if sufficient funds remain to pay at least one future rent."
-            return (p->cash - square->basePurchasePrice) >= square->baseRent;
+            return (p->cash - square->marketPrice) >= square->baseRent;
 
         case STRATEGY_CONSERVATIVE_BANKER:
             // "Purchases properties only if at least 50% of current cash remains after purchase."
-            return (p->cash - square->basePurchasePrice) >= (p->cash / 2);
+            return (p->cash - square->marketPrice) >= (p->cash / 2);
 
         case STRATEGY_RISK_TAKER:
             // "Purchases every available property whenever legally possible."
-            return p->cash >= square->basePurchasePrice;
+            return p->cash >= square->marketPrice;
 
         case STRATEGY_OPPORTUNISTIC_TRADER:
             // "Purchases properties only when projected appreciation exceeds construction costs."
             // (simplify for now - refine later once you have appreciation logic)
-            return p->cash >= square->basePurchasePrice;
+            return p->cash >= square->marketPrice;
 
         default:
             return 0;
@@ -218,5 +219,34 @@ int wantsToBid(Player *p,Square *square, int bidAmount){
         case STRATEGY_OPPORTUNISTIC_TRADER:
             return bidAmount < (square -> marketPrice);
 
+    }
+}
+
+int decideInsurancePolicy(Player *p,Square *square){
+    //return: 0=none, 1=Basic, 2=Comprehensive, 3=Business
+    switch(p -> strategy){
+        case STRATEGY_AGGRESSIVE_INVESTOR:
+            if(square -> hasHotel){
+                return 2;
+            }
+            if(square -> numHouses > 0){
+                return 1;
+            }
+            return 0;
+
+        case STRATEGY_CONSERVATIVE_BANKER:
+            return 2; //Always Comprehensive
+
+        case STRATEGY_RISK_TAKER:
+            return 0; //Never take insurance
+        
+        case STRATEGY_OPPORTUNISTIC_TRADER:
+            if(square -> hasHotel){
+                return 2;
+            }
+            return 0;
+        
+        default:
+            return 0;
     }
 }

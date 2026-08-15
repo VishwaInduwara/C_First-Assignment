@@ -17,4 +17,5 @@ int canBuildEvenly(Square *squares , PropertyGroup group ,  int propertyIndex);
 void buildHouse(Player *p , int playerIndex ,Square *squares,Square *square,GameState *game);
 void buildHotel(Player *p , int playerIndex, Square *square,GameState *game,Square *squares);
 void calculateInflation(Square *squares,int currentRound,GameState *game);
+void purchaseInsurance(Player *p, Square *square, int policyChoice);
 #endif

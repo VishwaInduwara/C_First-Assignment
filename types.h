@@ -97,6 +97,7 @@ typedef struct{
     int propertyAge; //Rule 15
     int buildingCondition; //Rule 25
     int isLoanLocked; //Rule 3
+    int isDamaged; //0 or 1, for disaster events
 
     //Insurance Policy
     PolicyType insurancePolicyType;

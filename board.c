@@ -3,6 +3,7 @@
 
 #include "board.h"
 #include "types.h"
+#include "board.h"
 
 
 //Square squares[40]; //Array of 40 squares on the board
@@ -32,6 +33,7 @@ void initBoard(Square *squares){
         squares[i].propertyAge = 0;
         squares[i].buildingCondition = 100;
         squares[i].isLoanLocked = 0;
+        squares[i].isDamaged = 0; //Initially, no square is damaged
 
         //Insurance Policy
         squares[i].insurancePolicyType = None_Insurance;
@@ -180,7 +182,7 @@ void initBoard(Square *squares){
     squares[18].type = SQ_PROPERTY;
     squares[18].group = Group_Orange;
     squares[18].propertytype = PropertyType_Regular;
-    squares[18].propertyIndex = 8; //Index of the associated property
+    squares[18].propertyIndex = 9; //Index of the associated property
     squares[18].basePurchasePrice = 4700;
     squares[18].baseMortgageValue = 2250;
     squares[18].baseHouseCost = 1250;
@@ -191,7 +193,7 @@ void initBoard(Square *squares){
     squares[19].type = SQ_PROPERTY;
     squares[19].group = Group_Orange;
     squares[19].propertytype = PropertyType_Regular;
-    squares[19].propertyIndex = 9; //Index of the associated property   
+    squares[19].propertyIndex = 10; //Index of the associated property   
     squares[19].basePurchasePrice = 5000;
     squares[19].baseMortgageValue = 2250;
     squares[19].baseHouseCost = 1250;
@@ -205,7 +207,7 @@ void initBoard(Square *squares){
     squares[21].type = SQ_PROPERTY;
     squares[21].group = Group_Red;
     squares[21].propertytype = PropertyType_Regular;
-    squares[21].propertyIndex = 10; //Index of the associated property  
+    squares[21].propertyIndex = 11; //Index of the associated property  
     squares[21].basePurchasePrice = 5500;
     squares[21].baseMortgageValue = 2750;
     squares[21].baseHouseCost = 1500;
@@ -219,7 +221,7 @@ void initBoard(Square *squares){
     squares[23].type = SQ_PROPERTY;
     squares[23].group = Group_Red;
     squares[23].propertytype = PropertyType_Regular;
-    squares[23].propertyIndex = 11; //Index of the associated property
+    squares[23].propertyIndex = 12; //Index of the associated property
     squares[23].basePurchasePrice = 5800;
     squares[23].baseMortgageValue = 2750;
     squares[23].baseHouseCost = 1500;
@@ -230,7 +232,7 @@ void initBoard(Square *squares){
     squares[24].type = SQ_PROPERTY;
     squares[24].group = Group_Red;
     squares[24].propertytype = PropertyType_Regular;
-    squares[24].propertyIndex = 12; //Index of the associated property
+    squares[24].propertyIndex = 13; //Index of the associated property
     squares[24].basePurchasePrice = 6000;
     squares[24].baseMortgageValue = 2750;
     squares[24].baseHouseCost = 1500;
@@ -248,7 +250,7 @@ void initBoard(Square *squares){
     squares[26].type = SQ_PROPERTY;
     squares[26].group = Group_Yellow;
     squares[26].propertytype = PropertyType_Regular;
-    squares[26].propertyIndex = 13; //Index of the associated property
+    squares[26].propertyIndex = 14; //Index of the associated property
     squares[26].basePurchasePrice = 6500;
     squares[26].baseMortgageValue = 3250;
     squares[26].baseHouseCost = 2000;
@@ -259,7 +261,7 @@ void initBoard(Square *squares){
     squares[27].type = SQ_PROPERTY;
     squares[27].group = Group_Yellow;
     squares[27].propertytype = PropertyType_Regular;
-    squares[27].propertyIndex = 14; //Index of the associated property
+    squares[27].propertyIndex = 15; //Index of the associated property
     squares[27].basePurchasePrice = 6800;
     squares[27].baseMortgageValue = 3250;
     squares[27].baseHouseCost = 2000;
@@ -276,7 +278,7 @@ void initBoard(Square *squares){
     squares[29].type = SQ_PROPERTY;
     squares[29].group = Group_Yellow;
     squares[29].propertytype = PropertyType_Regular;
-    squares[29].propertyIndex = 15; //Index of the associated property
+    squares[29].propertyIndex = 16; //Index of the associated property
     squares[29].basePurchasePrice = 7000;
     squares[29].baseMortgageValue = 3250;
     squares[29].baseHouseCost = 2000;
@@ -290,7 +292,7 @@ void initBoard(Square *squares){
     squares[31].type = SQ_PROPERTY;
     squares[31].group = Group_Green;
     squares[31].propertytype = PropertyType_Regular;
-    squares[31].propertyIndex = 16; //Index of the associated property
+    squares[31].propertyIndex = 17; //Index of the associated property
     squares[31].basePurchasePrice = 8000;
     squares[31].baseMortgageValue = 4000;
     squares[31].baseHouseCost = 2500;
@@ -301,7 +303,7 @@ void initBoard(Square *squares){
     squares[32].type = SQ_PROPERTY;
     squares[32].group = Group_Green;
     squares[32].propertytype = PropertyType_Regular;
-    squares[32].propertyIndex = 17; //Index of the associated property
+    squares[32].propertyIndex = 18; //Index of the associated property
     squares[32].basePurchasePrice = 8300;
     squares[32].baseMortgageValue = 4000;
     squares[32].baseHouseCost = 2500;
@@ -315,7 +317,7 @@ void initBoard(Square *squares){
     squares[34].type = SQ_PROPERTY;
     squares[34].group = Group_Green;
     squares[34].propertytype = PropertyType_Regular;
-    squares[34].propertyIndex = 18; //Index of the associated property
+    squares[34].propertyIndex = 19; //Index of the associated property
     squares[34].basePurchasePrice = 8500;
     squares[34].baseMortgageValue = 4000;
     squares[34].baseHouseCost = 2500;
@@ -336,7 +338,7 @@ void initBoard(Square *squares){
     squares[37].type = SQ_PROPERTY;
     squares[37].group = Group_DarkBlue;
     squares[37].propertytype = PropertyType_Regular;
-    squares[37].propertyIndex = 19; //Index of the associated property
+    squares[37].propertyIndex = 20; //Index of the associated property
     squares[37].basePurchasePrice = 10000;
     squares[37].baseMortgageValue = 5000;
     squares[37].baseHouseCost = 3000;
@@ -350,7 +352,7 @@ void initBoard(Square *squares){
     squares[39].type = SQ_PROPERTY;
     squares[39].group = Group_DarkBlue;
     squares[39].propertytype = PropertyType_Regular;
-    squares[39].propertyIndex = 20; //Index of the associated property
+    squares[39].propertyIndex = 21; //Index of the associated property
     squares[39].basePurchasePrice = 12000;
     squares[39].baseMortgageValue = 5000;
     squares[39].baseHouseCost = 3000;
