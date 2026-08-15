@@ -206,6 +206,7 @@ int canBuildEvenly(Square *squares , PropertyGroup group ,  int propertyIndex){
 }
 
 void buildHouse(Player *p, int playerIndex, Square *squares, Square *square, GameState *game){
+    printf("%s is attempting to build a house on %s.\n", p->name, square->name);
     if(square -> numHouses >= 4 || square -> hasHotel == 1){
         return;
     }
