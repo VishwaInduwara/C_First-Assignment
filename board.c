@@ -374,7 +374,7 @@ void movePlayer(Player *players, int currentPlayerIndex,int diceRoll){
     players[currentPlayerIndex].position = newPosition;
 
     if (newPosition < oldPosition){
-        players[currentPlayerIndex].isRoundCompleted = 1;
+        //players[currentPlayerIndex].isRoundCompleted = 1;
         players[currentPlayerIndex].cash += 2000;
 
         printf("\n");

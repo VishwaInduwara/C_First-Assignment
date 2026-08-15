@@ -311,7 +311,7 @@ void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int d
                 handleBankSquare(currentPlayerIndex, &players[currentPlayerIndex],squares,game);
 
             }else if(landedSquare->type == SQ_INSURANCE){
-                for(int i = 0; i < MAX_PLAYERS; i++) {
+                for(int i = 0; i < BOARD_SIZE; i++) {
                     if(squares[i].owner == currentPlayerIndex && squares[i].insurancePolicyType == None_Insurance){
                         int choice = decideInsurancePolicy(&players[currentPlayerIndex], &squares[i]); //Call the function from players.c to decide insurance policy
                         if(choice > 0){
@@ -413,10 +413,11 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
 
         for(int i = 0;i < MAX_PLAYERS; i++){
             int currentPlayerIndex = turnOrder[i];
+            players[currentPlayerIndex].isRoundCompleted = 1;
 
-            if(players[currentPlayerIndex].isRoundCompleted == 1){
+            /*if(players[currentPlayerIndex].isRoundCompleted == 1){
                 continue; //Player has already completed their turn
-            }
+            }*/
 
             if(resolveJailTurn(&players[currentPlayerIndex])==1){
                 continue; //Still in jail , skip rest of this turn
@@ -443,7 +444,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
         }
 
         //A round is finisihed only when every non-bankrupt player has completed their turn
-        int roundCompleted = 1;
+       /* int roundCompleted = 1;
         for(int i = 0;i < MAX_PLAYERS; i++){
             if(!players[i].isBankrupt && players[i].isRoundCompleted == 0){
                 roundCompleted = 0;
@@ -453,7 +454,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
         //If round is not completed, continue to next player
         if(!roundCompleted){
             continue; //Not all players have completed their turn, continue to next player
-        }
+        }*/
         
         //Loan Handling and Bankruptcy Check
         for(int i = 0;i < MAX_PLAYERS; i++){
@@ -495,7 +496,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
             }
         }
 
-        for(int i = 0;i < MAX_PLAYERS; i++){
+        for(int i = 0;i < BOARD_SIZE; i++){
             if(squares[i].insurancePolicyType != None_Insurance){
                 squares[i].insuranceRoundsRemaining--;
                 if(squares[i].insuranceRoundsRemaining == 3){

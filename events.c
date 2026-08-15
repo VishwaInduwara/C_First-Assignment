@@ -100,8 +100,8 @@ void triggerDisaster(Player *players, Square *squares){
         printf("Insurance Claim Approved\n");
         printf("Compensation Received: LKR %d\n", compensationAmount);
     }else{
-        players[ownerIndex].cash -= repairCost;
-        printf("%s paid full repair cost of LKR %d due to lack of insurance.\n", players[ownerIndex].name, repairCost);
-        checkBankruptcy(&players[ownerIndex], ownerIndex, squares); // Check for bankruptcy after paying repair cost
+        //players[ownerIndex].cash -= repairCost;
+        printf("%s must pay the full repair cost of LKR %d due to lack of insurance.\n", players[ownerIndex].name, repairCost);
+        //checkBankruptcy(&players[ownerIndex], ownerIndex, squares); // Check for bankruptcy after paying repair cost
     }
 }

@@ -114,7 +114,7 @@ typedef struct{
 
     int playerrolls; //Dice value rolled by the player to determine turn order
 
-    int ownedProperties[28]; //Array of property indices owned by the player
+    //int ownedProperties[28]; //Array of property indices owned by the player
     int numOwnedProperties; //Number of properties owned by the player
     int numHotelCount;
 
@@ -135,7 +135,7 @@ typedef struct{
     int netWorth;
 } Player;
 
-typedef struct{
+/*typedef struct{
     int amount;
     int interestRate; //Percentage
     int remainingTurns; //Number of turns left to repay the loan
@@ -143,7 +143,7 @@ typedef struct{
     int numCollateralProperties; //Number of properties used as collateral
     int ownerPlayerIndex; //Index of the player who took the loan
     int isActive; //0 or 1
-} Loan;
+} Loan;*/
 
 typedef struct{
     int currentRound;
