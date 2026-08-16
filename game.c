@@ -9,7 +9,7 @@
 #include "events.h"
 #include "game.h"
 
-//void playerDice(void);
+
 int rollDice(){
 
     int die1 = rand() %6 + 1; //Random number between 1 and 6
@@ -367,7 +367,7 @@ void calculateNetWorth(Player *players,Square *squares){
             }
         }
         
-        //printf("Net worth before cash %d\n",players[j].netWorth);
+        
         players[j].netWorth = players[j].totalPropertyValue + buildingValue + players[j].cash - players[j].loanAmount;
 
     }
@@ -457,7 +457,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
     game -> declinedGroup = GROUP_NONE;
     game -> currentRound = currentRound;
     game -> currentLoanInterest = 0.08;
-    game -> baseLoanInterest = 0.08;    //ADD THIS
+    game -> baseLoanInterest = 0.08;    
     game -> activeRegulation = -1;
     game -> regulationRoundsRemaining = 0;
     game -> activeRegionalCard = -1;

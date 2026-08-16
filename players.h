@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-//extern Player players[4]; //Array of 4 players in the game
+
 
 void initPlayers(Player *players); //prototype for the function that initializes the players
 int shouldBuyProperty(Player *p, Square *square);

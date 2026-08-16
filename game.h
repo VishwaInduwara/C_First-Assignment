@@ -3,18 +3,24 @@
 
 #include "types.h"
 
-int rollDice(void);
+int rollDice(void);//game.c:13
 
-void playerDice(Player *players);
-void determineTurnOrder(Player *players,int turnOrder[]);
-void runGame(Player *players,int turnOrder[],Square *squares,GameState *game);
-void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int diceRoll,GameState *game);
-//int resolveJailTurn(Player *p);
-void handleBankSquare(int playerIndex,Player *p,Square *squares,GameState *game);
-void calculateNetWorth(Player *players,Square *squares);
-void tryBuildMonopolies(Player *p , int playerIndex , Square *squares,GameState *game);
-void runAuction(Player *players , Square *square,GameState *game,Square *squares);
+void playerDice(Player *players);//game.c:23
 
-int resolveJailTurn(Player *p, int playerIndex, Square *squares, GameState *game);
+void determineTurnOrder(Player *players,int turnOrder[]);//game.c:44
+
+void handleBankSquare(int playerIndex,Player *p,Square *squares,GameState *game); //game.c:104
+
+void runAuction(Player *players , Square *square,GameState *game,Square *squares); //game.c:158
+
+void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int diceRoll,GameState *game); //game.c:237
+
+void calculateNetWorth(Player *players,Square *squares);//game.c:354
+
+int resolveJailTurn(Player *p, int playerIndex, Square *squares, GameState *game); //game.c:377
+
+void tryBuildMonopolies(Player *p , int playerIndex , Square *squares,GameState *game); //game.c:419
+
+void runGame(Player *players,int turnOrder[],Square *squares,GameState *game);      //game.c:450
 
 #endif // GAME_H
