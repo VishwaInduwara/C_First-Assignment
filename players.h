@@ -14,7 +14,7 @@ int shouldRepayLoan(Player *p);
 int decideRepaymentAmount(Player *p);
 
 int hasMonopoly(int playerIndex , Square *squares, PropertyGroup group);
-int shouldBuild(Player *p);
+int shouldBuild(Player *p,int isHotel);
 int wantsToBid(Player *p,Square *square, int bidAmount);
 
 int decideInsurancePolicy(Player *p,Square *square);

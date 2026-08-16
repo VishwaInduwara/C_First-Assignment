@@ -187,7 +187,7 @@ int checkBankruptcy(Player *p,int playerIndex,Square *squares){
                 squares[i].insuranceRoundsRemaining = 0; // Reset insurance rounds
                 squares[i].isLoanLocked = 0; // Unlock property from loan
                 squares[i].isMortgaged = 0; //clear mortgage when returned to the bank
-                
+
                 squares[i].propertyAge = 0;
                 squares[i].depreciationPct = 0;
 
@@ -564,14 +564,18 @@ void renovateProperty(Player *p, int playerIndex, Square *squares, Square *squar
 //get random inflation
 void calculateInflation(Square *squares,int currentRound,GameState *game){
     float inflation[6]={-0.03,00.0,0.02,0.05,0.08,0.12};
-
     float InflationRate = inflation[rand()%6];
-    if(InflationRate>=0.08){
-        game -> currentLoanInterest = 0.12;
+
+    float deviation = game -> currentLoanInterest - game -> baseLoanInterest;
+    if(InflationRate >= 0.08){
+        game -> baseLoanInterest = 0.12;
     }else{
-        game -> currentLoanInterest = 0.1;
+        game -> baseLoanInterest = 0.10;
     }
-    game -> currentInflactionRate = InflationRate;
+    game -> currentLoanInterest = game -> baseLoanInterest + deviation;
+    if(game -> currentLoanInterest < 0.0){
+        game -> currentLoanInterest = 0.0; //same floor style as events.c:234
+    }
     
     for(int i=0 ; i<BOARD_SIZE;i++){
         squares[i].marketPrice = (int)((squares[i].marketPrice)*(1+InflationRate));
@@ -593,9 +597,13 @@ void purchaseInsurance(Player *p, Square *square, int policyChoice, GameState *g
     }else if(policyChoice == 2){
         premium = (int)(currentMarketValue(square) * 0.1);
         type = Comprehensive_Insurance;
-    }else{
+    }else if(policyChoice == 3){
         type = Business_Interruption_Insurance;
         premium = (int)(currentMarketValue(square) * 0.15);
+    }else{
+        
+        printf("Invalid insurance choice. No insurance purchased.\n");
+        return;
     }
 
     if(isRegulationActive(game, REG_INSURANCE_REGULATION)){

@@ -181,7 +181,7 @@ int hasMonopoly(int playerIndex , Square *squares, PropertyGroup group){
 }
 
 //Player strategy for build houses
-int shouldBuild(Player *p){
+int shouldBuild(Player *p,int isHotel){
     switch(p -> strategy){
         case STRATEGY_AGGRESSIVE_INVESTOR:
             return 1; //Always build if eligible
@@ -189,6 +189,9 @@ int shouldBuild(Player *p){
         case STRATEGY_CONSERVATIVE_BANKER:
             //Never develop hotel until all loan are settle
             //But he can build houses
+            if(isHotel && p -> hasActiveLoan){
+                return 0; //Don't build hotels
+            }
             return 1;
 
         case STRATEGY_RISK_TAKER:
@@ -219,6 +222,9 @@ int wantsToBid(Player *p,Square *square, int bidAmount){
         case STRATEGY_OPPORTUNISTIC_TRADER:
             return bidAmount < (square -> marketPrice);
 
+        default:
+            return 0;
+
     }
 }
 
@@ -227,7 +233,7 @@ int decideInsurancePolicy(Player *p,Square *square){
     switch(p -> strategy){
         case STRATEGY_AGGRESSIVE_INVESTOR:
             if(square -> hasHotel){
-                return 2;
+                return 3; //Business Interruption Insurance for hotels
             }
             if(square -> numHouses > 0){
                 return 1;

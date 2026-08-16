@@ -222,6 +222,8 @@ typedef struct{
     int currentRound;
     float currentInflactionRate;
     float currentLoanInterest;
+    float baseLoanInterest;    //inflation base rate; card/regulation deltas are applied on top
+    
     PropertyGroup boomedGroup; //The property group that is currently booming
     int boomRoundsRemaining; //Rule-LK 30/31
 

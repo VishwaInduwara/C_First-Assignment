@@ -425,13 +425,17 @@ void tryBuildMonopolies(Player *p , int playerIndex , Square *squares,GameState 
     for(int group = Group_Brown; group <= Group_DarkBlue; group ++){
         if(hasMonopoly(playerIndex , squares , (PropertyGroup)group)){
             p -> hasMonopoly = 1;
-            if(shouldBuild(p)){
-                for(int i = 0; i<BOARD_SIZE; i++){
-                    if(squares[i].group == (PropertyGroup)group && squares[i].owner == playerIndex && squares[i].propertytype == PropertyType_Regular){
-                        if(squares[i].numHouses == 4 && !squares[i].hasHotel){
+            int buildHouses = shouldBuild(p, 0); //decide once per group
+            int buildHotels = shouldBuild(p, 1);
+            for(int i = 0; i<BOARD_SIZE; i++){
+                if(squares[i].group == (PropertyGroup)group && squares[i].owner == playerIndex && squares[i].propertytype == PropertyType_Regular){
+                    if(squares[i].numHouses == 4 && !squares[i].hasHotel){
+                        if(buildHotels){
                             buildHotel(p, playerIndex, &squares[i], game,squares);
-                        } else if(squares[i].numHouses < 4){
-                             buildHouse(p, playerIndex, squares, &squares[i],game);
+                        }
+                    } else if(squares[i].numHouses < 4){
+                        if(buildHouses){
+                            buildHouse(p, playerIndex, squares, &squares[i],game);
                         }
                     }
                 }
@@ -453,6 +457,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
     game -> declinedGroup = GROUP_NONE;
     game -> currentRound = currentRound;
     game -> currentLoanInterest = 0.08;
+    game -> baseLoanInterest = 0.08;    //ADD THIS
     game -> activeRegulation = -1;
     game -> regulationRoundsRemaining = 0;
     game -> activeRegionalCard = -1;
@@ -466,9 +471,6 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
             int currentPlayerIndex = turnOrder[i];
             players[currentPlayerIndex].isRoundCompleted = 1;
 
-            /*if(players[currentPlayerIndex].isRoundCompleted == 1){
-                continue; //Player has already completed their turn
-            }*/
 
             if(resolveJailTurn(&players[currentPlayerIndex],currentPlayerIndex,squares,game)==1){
                 continue; //Still in jail , skip rest of this turn
@@ -492,7 +494,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
             int oldPosition = players[currentPlayerIndex].position;
             int diceRoll = rollDice();
             printf("%s rolled %d\n",players[currentPlayerIndex].name,diceRoll);
-            printf("%s moves from Square %d to Square %d\n\n",players[currentPlayerIndex].name,oldPosition,(oldPosition+diceRoll)%40);
+            printf("%s moves from Square %d to Square %d\n\n",players[currentPlayerIndex].name,oldPosition,(oldPosition+diceRoll)%BOARD_SIZE);
 
             movePlayer(players,currentPlayerIndex,diceRoll);
 
