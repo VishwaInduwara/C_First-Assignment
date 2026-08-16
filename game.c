@@ -8,6 +8,7 @@
 #include "finance.h"
 #include "events.h"
 #include "game.h"
+
 //void playerDice(void);
 int rollDice(){
 
@@ -164,16 +165,14 @@ void runAuction(Player *players , Square *square,GameState *game,Square *squares
         active[i] = !players[i].isBankrupt; //Non bankrupt players are active
     }
 
-    if(square -> marketPrice < (square -> basePurchasePrice)*(1+0.5)){
-        currentBid = (int)(square -> basePurchasePrice*0.5); 
-    }else{
-        currentBid = square -> basePurchasePrice;
-    }
 
-    if(square -> group == game -> declinedGroup && game -> declineRoundsRemaining > 0){
-        currentBid = (currentBid * 75)/100; //Rule LK 32
-    }else{
-        currentBid = (currentBid * 100)/100; //Rule LK 31
+    //Rule-LK 19: bidding begins at 50% of market value
+    currentBid = currentMarketValue(square) / 2;
+
+    if(square -> group == game -> boomedGroup && game -> boomRoundsRemaining > 0){
+        currentBid = (currentBid * 115) / 100; //Rule LK 31: purchase prices increase by 15% during boom
+    }else if(square -> group == game -> declinedGroup && game -> declineRoundsRemaining > 0){
+        currentBid = (currentBid * 75) / 100; //Rule LK 32: auction starting prices decrease by 25% during decline
     }
 
     
@@ -302,7 +301,7 @@ void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int d
                     int tax = (totalPropertyAssets(currentPlayerIndex, squares) * marketTaxRate(game, 10)) / 100;
                     payTax(&players[currentPlayerIndex], tax, currentPlayerIndex, squares, game);
                 }else{
-                    
+
                     //Income Tax: 15% of total assets (cash + properties)
                     int rate = 15;
 
@@ -375,9 +374,24 @@ void calculateNetWorth(Player *players,Square *squares){
 
 }
 
-int resolveJailTurn(Player *p){
+int resolveJailTurn(Player *p, int playerIndex, Square *squares, GameState *game){
     if(!p -> inJail){
         return 0; //not in jail
+    }
+
+    //Rule 13: pay bail of LKR 300 to leave immediately
+    if(shouldPayBail(p)){
+        if(p -> cash < 300){
+            raiseCashByMortgage(p, playerIndex, squares, game, 300); //mortgage to cover bail
+        }
+        if(p -> cash >= 300){
+            p -> cash -= 300;
+            p -> inJail = 0;
+            p -> jailTurnsRemaining = 0;
+            printf("%s paid LKR 300 bail and is released from Jail.\n", p -> name);
+            printf("Remaining Balance : LKR %d.\n", p -> cash);
+            return 0; //Player released by paying bail
+        }
     }
 
     int wasDouble = 0;
@@ -403,7 +417,7 @@ int resolveJailTurn(Player *p){
 
 //Build Monopoly 
 void tryBuildMonopolies(Player *p , int playerIndex , Square *squares,GameState *game){
-    printf("TryBuildMONOPOLY called\n\n");
+    
     if(isNationalEffectActive(game,CARD_LABOUR_STRIKE,playerIndex)){
         printf("%s cannot build due to Labour Strike.\n",p->name);
         return;
@@ -456,7 +470,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
                 continue; //Player has already completed their turn
             }*/
 
-            if(resolveJailTurn(&players[currentPlayerIndex])==1){
+            if(resolveJailTurn(&players[currentPlayerIndex],currentPlayerIndex,squares,game)==1){
                 continue; //Still in jail , skip rest of this turn
             }
 
@@ -492,23 +506,18 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
 
         }
 
-        //A round is finisihed only when every non-bankrupt player has completed their turn
-       /* int roundCompleted = 1;
-        for(int i = 0;i < MAX_PLAYERS; i++){
-            if(!players[i].isBankrupt && players[i].isRoundCompleted == 0){
-                roundCompleted = 0;
-            }
-        }
-
-        //If round is not completed, continue to next player
-        if(!roundCompleted){
-            continue; //Not all players have completed their turn, continue to next player
-        }*/
         
         //Loan Handling and Bankruptcy Check
         for(int i = 0;i < MAX_PLAYERS; i++){
             if(players[i].hasActiveLoan == 1){
-                players[i].loanAmount += (int)(players[i].loanAmount * game ->currentLoanInterest);
+                float effectiveInterest = game -> currentLoanInterest;
+                if(isEconomicEventActive(game, ECON_ECONOMIC_RECESSION)){
+                    effectiveInterest *= 1.15; //Rule-LK 18: loan interest +15%
+                }
+                if(isEconomicEventActive(game, ECON_STOCK_MARKET_BOOM)){
+                    effectiveInterest *= 0.90; //Rule-LK 18: loan interest -10%
+                }
+                players[i].loanAmount += (int)(players[i].loanAmount * effectiveInterest);
                 players[i].loanTurnsRemaining--;
 
                 if(players[i].loanTurnsRemaining <= 0){
@@ -634,10 +643,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
             }
         }
 
-        //runs only every 10 rounds
-       /* if(currentRound % 10 == 0){
-            //TODO disaster
-        }*/
+       
 
         //if only one player is solvent, game ends
         int solventCount = 0;
@@ -670,17 +676,23 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
                 triggerRegionalDevelopment(game, squares);
             }
 
+            tickEconomicEvents(game, squares); //Rule-LK 18: expire finished events
+            
+            if(currentRound % 15 == 0){
+                triggerEconomicEvent(game, squares); //Rule-LK 18: new event
+            }
+
             //Call Inflaction function in finance.c
             if(currentRound %10 == 0){
                 calculateInflation(squares,currentRound,game);
-                triggerDisaster(players,squares); //Call the function to trigger a disaster event
+                triggerDisaster(players,squares,game); //Call the function to trigger a disaster event
             }
             printf("Current Round: %d\n\n",currentRound);
 
             calculateNetWorth(players,squares);
-            printf("\n======================================\n");
-            printf("Round %d Summary\n",currentRound);
-            printf("======================================\n");
+            printf("\n==========================================================\n");
+            printf("                        ROUND %d SUMMARY\n", currentRound);
+            printf("==========================================================\n");
 
             for(int i = 0;i<MAX_PLAYERS;i++){
                 printf("%s\n",players[i].name);
@@ -689,27 +701,29 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
                 printf("Properties : %d\n",players[i].numOwnedProperties);
                 printf("Hotels : %d\n",players[i].numHotelCount);
                 printf("Outstanding Loan : LKR %d\n",players[i].loanAmount);
-                printf("\n---------------------------------\n\n");
+                printf("\n----------------------------------------------------------\n\n");
             }
 
             printf("\n=========================\n\n");
             printf("Rule-LK 36 output messages\n\n");
-            printf("===========================\n");
+            printf("==========================\n");
             printf("Current Market Condition\n");
             printf("==========================\n\n");
-            printf("Market Boom\n-----------------\n");
-            printf("Rounds Remainig : %d\n\n",game -> boomRoundsRemaining);
+            printf("Market Boom\n----------------------------------------------------------\n");
+            printf("Rounds Remaining : %d\n\n",game -> boomRoundsRemaining);
 
-            printf("Market Decline\n---------------\n");
+            printf("Market Decline\n----------------------------------------------------------\n");
             printf("Rounds Remainig : %d\n\n",game -> declineRoundsRemaining);
 
-            printf("Regional Development\n------------------\n");
+            printf("Regional Development\n----------------------------------------------------------\n");
 
             printActiveRegionalCard(game); //Call the function to print the active regional development card            
 
-            printf("\nInflaction\n--------------\n%.2f\n",game -> currentInflactionRate);
+            printf("\nInflation\n----------------------------------------------------------\n%.2f\n",game -> currentInflactionRate);
 
-            printf("Current Loan Interest\n----------------\n%.2f\n",game -> currentLoanInterest);
+            printf("Current Loan Interest\n----------------------------------------------------------\n%.2f\n",game -> currentLoanInterest);
+
+            printf("==========================================================\n");
 
             //Reset for next round
             for(int i = 0;i < MAX_PLAYERS; i++){
@@ -723,7 +737,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
 
     
     printf("=========================================\n\n");
-    printf("          End of Game\n\n");
+    printf("            End of Game\n\n");
     printf("=========================================\n\n");
     printf("GAME OVER!\n\n");
     printf("Winner:\n");

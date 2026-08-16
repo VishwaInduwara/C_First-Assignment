@@ -279,3 +279,18 @@ int shouldMaintain(Player *p, int condition){
         default:                            return 0;
     }
 }
+
+int shouldPayBail(Player *p){
+    switch(p -> strategy){
+        case STRATEGY_AGGRESSIVE_INVESTOR:  
+            return 1;//never wastes a turn; income matters
+        case STRATEGY_CONSERVATIVE_BANKER:  
+            return 1;//avoids the risk of extra turns
+        case STRATEGY_OPPORTUNISTIC_TRADER: 
+            return p -> cash >= 300; //only if affordable
+        case STRATEGY_RISK_TAKER:           
+            return 0;//gambles on rolling doubles
+        default:                           
+            return 0;
+    }
+}

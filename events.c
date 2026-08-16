@@ -51,7 +51,7 @@ void updateMarketBoomDecline(GameState *game){
     
 }
 
-void triggerDisaster(Player *players, Square *squares){
+void triggerDisaster(Player *players, Square *squares,GameState *game){
     int developedProperties[BOARD_SIZE];
     int count = 0;
 
@@ -106,32 +106,6 @@ void triggerDisaster(Player *players, Square *squares){
     }
 }
 
-//National Event Cards
-//static = only accessible within the current .c file
-/*static const char *cardNames[] = {
-    "Tourism Hype", "Fuel Shortage", "Heavy Floods", "Political Rally",
-    "Stock Market Rise", "Economic Downturn", "Housing Subsidy",
-    "Interest Rate Cut", "Interest Rate Increase", "Tax Amnesty",
-    "Power Failure", "Foreign Funding", "Port Expansion",
-    "Festival Season", "Labour Strike", "Insurance Discount",
-    "Property Revaluation", "Currency Depreciation",
-    "Government Grant", "National Disaster"
-};*/
-
-/*void initNationalEventDeck(GameState *game){
-    for(int i = 0; i < NUM_NATIONAL_CARDS; i++){
-        game -> nationalCardDeck[i] = i; //Initialize deck with card IDs
-    }
-    
-    //Shuffle
-    for(int i = NUM_NATIONAL_CARDS - 1; i > 0; i--){
-        int j = rand() % (i + 1);
-        int temp = game -> nationalCardDeck[i];
-        game -> nationalCardDeck[i] = game -> nationalCardDeck[j];
-        game -> nationalCardDeck[j] = temp;
-    }
-    game -> nationalCardTop = 0; //Reset top of the deck
-}*/
 
 // events.c
 void initEventDeck(GameState *game) {
@@ -249,7 +223,7 @@ void triggerGovernmentRegulation(GameState *game, Square *squares){
     printf("%s\n", regulationNames[reg]);
 
     switch(reg){
-        
+
         case REG_INCREASE_PROPERTY_TAX:
            // squares[4].baseRent = (squares[4].baseRent * 150) / 100;
             printf("\nIncome Tax increased by 50%%. while this regulation is active.\n");
@@ -384,9 +358,9 @@ void triggerRegionalDevelopment(GameState *game, Square *squares){
     game -> activeRegionalCard = card;
     game -> regionalCardRoundsRemaining = 15;
 
-    printf("\n==========================\n");
+    printf("\n==========================================================\n");
     printf("Regional Development Card (Rule-LK 35)\n");
-    printf("==========================\n");
+    printf("==========================================================\n");
     printf("%s\n", regionalCardNames[card]);
 
     int pct = regionalValuePct((RegionalCardId)card);
@@ -574,11 +548,124 @@ void applyEventCard(NationalCardId card,Player *players,int playerIndex, Square 
 
         case CARD_NATIONAL_DISASTER:
             printf("National Disaster: Random developed property damaged\n");
-            triggerDisaster(players,squares);
+            triggerDisaster(players,squares,game);
             break;
 
         default:
             printf("Unknown card drawn.\n");
             break;
     }
+}
+
+//Rule LK 18: Economic Events
+static const char *economicEventNames[] = {
+    "Tourism Boom", "Fuel Crisis", "Heavy Monsoon", "Economic Recession",
+    "Stock Market Boom", "Government Housing Programme",
+    "Foreign Investment", "Political Unrest"
+};
+
+static int economicValuePct(EconomicEvent event){
+    switch(event){
+        case ECON_TOURISM_BOOM:       return 115; //Southern Coastal +15%
+        case ECON_HEAVY_MONSOON:      return 90;  //Coastal -10%
+        case ECON_ECONOMIC_RECESSION: return 85;  //All -15%
+        case ECON_STOCK_MARKET_BOOM:  return 110; //All +10%
+        case ECON_FOREIGN_INVESTMENT: return 120; //Railways + Utilities +20%
+        default:                      return 100;
+    }
+}
+
+static void economicValueSquares(EconomicEvent event, int idx[], int *n){
+    static const int southernCoastal[] = {26, 27, 29};
+    static const int coastal[] = {1,3,6,8,9,16,18,19,26,27,29};
+    static const int commercial[] = {5, 15, 25, 35, 12, 28}; //railways + utilities
+    switch(event){
+        case ECON_TOURISM_BOOM:
+            for(int i = 0; i < 3; i++) idx[i] = southernCoastal[i];
+            *n = 3; break;
+        case ECON_HEAVY_MONSOON:
+            for(int i = 0; i < 11; i++) idx[i] = coastal[i];
+            *n = 11; break;
+        case ECON_FOREIGN_INVESTMENT:
+            for(int i = 0; i < 6; i++) idx[i] = commercial[i];
+            *n = 6; break;
+        case ECON_ECONOMIC_RECESSION:
+        case ECON_STOCK_MARKET_BOOM:
+            for(int i = 0; i < BOARD_SIZE; i++) idx[i] = i;
+            *n = BOARD_SIZE; break;
+        default:
+            *n = 0; break;
+    }
+}
+
+int isEconomicEventActive(GameState *game, EconomicEvent event){
+    for(int i = 0; i < MAX_ACTIVE_ECONOMIC_EVENTS; i++){
+        if(game -> economicEffects[i].eventID == (int)event &&
+           game -> economicEffects[i].roundsRemaining > 0){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void triggerEconomicEvent(GameState *game, Square *squares){
+    int slot = -1;
+    for(int i = 0; i < MAX_ACTIVE_ECONOMIC_EVENTS; i++){
+        if(game -> economicEffects[i].eventID == -1){ slot = i; break; }
+    }
+    if(slot == -1){
+        printf("Too many economic events active; none triggered.\n");
+        return;
+    }
+    int event = rand() % NUM_ECONOMIC_EVENTS;
+    game -> economicEffects[slot].eventID = event;
+    game -> economicEffects[slot].roundsRemaining = ECONOMIC_EVENT_DURATION;
+
+    printf("Economic Event: %s (active for %d rounds)\n",
+           economicEventNames[event], ECONOMIC_EVENT_DURATION);
+
+    int pct = economicValuePct((EconomicEvent)event);
+    if(pct != 100){
+        int idx[BOARD_SIZE], n;
+        economicValueSquares((EconomicEvent)event, idx, &n);
+        for(int i = 0; i < n; i++){
+            squares[idx[i]].marketPrice = (squares[idx[i]].marketPrice * pct) / 100;
+        }
+    }
+}
+
+void tickEconomicEvents(GameState *game, Square *squares){
+    for(int i = 0; i < MAX_ACTIVE_ECONOMIC_EVENTS; i++){
+        if(game -> economicEffects[i].eventID == -1) continue;
+        game -> economicEffects[i].roundsRemaining--;
+        if(game -> economicEffects[i].roundsRemaining <= 0){
+            int event = game -> economicEffects[i].eventID;
+            printf("Economic Event ended: %s\n", economicEventNames[event]);
+            int pct = economicValuePct((EconomicEvent)event);
+            if(pct != 100){ //Rule-LK 34: revert this event's changes (order-safe)
+                int idx[BOARD_SIZE], n;
+                economicValueSquares((EconomicEvent)event, idx, &n);
+                for(int j = 0; j < n; j++){
+                    squares[idx[j]].marketPrice = (squares[idx[j]].marketPrice * 100) / pct;
+                }
+            }
+            game -> economicEffects[i].eventID = -1;
+            game -> economicEffects[i].roundsRemaining = 0;
+        }
+    }
+}
+
+void printActiveEconomicEvents(GameState *game){
+    printf("\nActive Economic Events\n----------------------\n");
+    int any = 0;
+    for(int i = 0; i < MAX_ACTIVE_ECONOMIC_EVENTS; i++){
+        if(game -> economicEffects[i].eventID != -1){
+            any = 1;
+            printf("%s (%d rounds remaining)\n",
+                   economicEventNames[game -> economicEffects[i].eventID],
+                   game -> economicEffects[i].roundsRemaining);
+        }
+    }
+    if(!any) printf("None\n");
+    printf("\n");
 }

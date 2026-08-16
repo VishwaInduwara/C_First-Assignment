@@ -10,7 +10,8 @@
 #define LOAN_THRESHOLD_AGGRESSIVE     15000  // 50% of starting cash
 #define LOAN_THRESHOLD_OPPORTUNISTIC   5000  // Safe liquidity buffer
 #define LOAN_THRESHOLD_CONSERVATIVE    2000  // Imminent bankruptcy safety line
-
+#define MAX_ACTIVE_ECONOMIC_EVENTS 8 //Rule-LK 34: multiple events can stack
+#define ECONOMIC_EVENT_DURATION 20    //rounds each event stays active
 
 //Enums
 
@@ -118,6 +119,19 @@ typedef enum{
     NUM_REGIONAL_CARDS              //12
 } RegionalCardId;
 
+//Rule-LK 18: Economic Events
+typedef enum{
+    ECON_TOURISM_BOOM,        //0 Hotels double rent; Southern Coastal +15%
+    ECON_FUEL_CRISIS,         //1 Railway rent doubles; development costs +20%
+    ECON_HEAVY_MONSOON,       //2 Flood risk up; insurance premiums up; Coastal -10%
+    ECON_ECONOMIC_RECESSION,  //3 Values -15%; rent -10%; loan interest +15%
+    ECON_STOCK_MARKET_BOOM,   //4 Values +10%; loan interest -10%
+    ECON_HOUSING_PROGRAMME,   //5 House construction -25%
+    ECON_FOREIGN_INVESTMENT,  //6 Railway+Utility values +20%
+    ECON_POLITICAL_UNREST,    //7 Riot probability x2; hotel rent -50%
+    NUM_ECONOMIC_EVENTS       //8
+} EconomicEvent;
+
 
 
 typedef struct{
@@ -198,6 +212,11 @@ typedef struct{
     int cardID;   //NationalCardId    
 } NationalEffect;
 
+typedef struct{
+    int eventID;         //EconomicEvent value, -1 = empty slot
+    int roundsRemaining; //rounds left before expiry
+} EconomicEventSlot;
+
 
 typedef struct{
     int currentRound;
@@ -214,6 +233,8 @@ typedef struct{
     int boomCooldown[8];//array is used to remember how many rounds each property group must wait before it can boom again(30 rounds)
     int declineCooldown[8];
 
+    EconomicEventSlot economicEffects[MAX_ACTIVE_ECONOMIC_EVENTS]; //Rule-LK 18
+
     int activeRegionalCard; //-1=none
     int regionalCardRoundsRemaining; //Number of rounds remaining for the active regional card effect
 
@@ -223,9 +244,11 @@ typedef struct{
     int nationalCardDeck[NUM_NATIONAL_CARDS]; //Array to hold the national card deck
     int nationalCardTop; //index of the next card to draw
     NationalEffect nationalEffects[MAX_ACTIVE_NATIONAL_EFFECTS]; //Array to hold active national card effects
-    //int eventDeckFront; //index of the "top" card to draw next
+    
     int gameOver; //0 or 1
 } GameState;
+
+
 
 #endif // TYPES_H
 

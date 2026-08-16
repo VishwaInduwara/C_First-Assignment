@@ -23,4 +23,6 @@ int shouldRenovate(Player *p, int depreciationPct);
 
 int shouldMaintain(Player *p, int condition);
 
+int shouldPayBail(Player *p); //Rule 13: decide whether to pay LKR 300 bail
+
 #endif // PLAYERS_H

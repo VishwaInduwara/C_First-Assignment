@@ -116,11 +116,21 @@ int calculateRent(Square *landedSquare, Square *squares, int diceRoll,GameState 
             if(isNationalEffectActive(game,CARD_FESTIVAL_SEASON,landedSquare -> owner)){
                 rent += rent / 2; //50% extra rent for hotels
             }
+            if(isEconomicEventActive(game, ECON_TOURISM_BOOM)){
+                rent *= 2; //Rule-LK 18: hotels earn double rent
+            }
+            if(isEconomicEventActive(game, ECON_POLITICAL_UNREST)){
+                rent /= 2; //Rule-LK 18: hotel rent drops by 50%
+            }
         }
         if(landedSquare -> type == SQ_RAILWAY){
             if(isNationalEffectActive(game,CARD_FUEL_SHORTAGE,landedSquare -> owner)){
                 rent *= 2; //Double rent for railways
             }
+            if(isEconomicEventActive(game, ECON_FUEL_CRISIS)){
+                rent *= 2; //Rule-LK 18: railway rent doubles
+            }
+
         }
         if(landedSquare -> type == SQ_UTILITY){
             if(isNationalEffectActive(game,CARD_POWER_FAILURE,landedSquare -> owner)){
@@ -153,6 +163,11 @@ int calculateRent(Square *landedSquare, Square *squares, int diceRoll,GameState 
         rent = (rent * 75) / 100;
     }
     }
+
+    if(isEconomicEventActive(game, ECON_ECONOMIC_RECESSION)){
+        rent = (rent * 90) / 100; //Rule-LK 18: rent -10%
+    }
+
     return rent;
 }
 
@@ -362,6 +377,13 @@ void buildHouse(Player *p, int playerIndex, Square *squares, Square *square, Gam
         return;
     }
 
+    if(isEconomicEventActive(game, ECON_FUEL_CRISIS)){
+        actualCost = (actualCost * 120) / 100; //Rule-LK 18: development costs +20%
+    }
+    if(isEconomicEventActive(game, ECON_HOUSING_PROGRAMME)){
+        actualCost = (actualCost * 75) / 100; //Rule-LK 18: house construction -25%
+    }
+
     p -> cash -= actualCost;
     square -> numHouses++;
 
@@ -386,6 +408,10 @@ void buildHotel(Player *p, int playerIndex, Square *square, GameState *game,Squa
     }
     if(isRegulationActive(game, REG_HOUSING_SUBSIDY)){
         actualCost = (actualCost * 70) / 100;
+    }
+
+    if(isEconomicEventActive(game, ECON_FUEL_CRISIS)){
+        actualCost = (actualCost * 120) / 100; //Rule-LK 18: development costs +20%
     }
 
     if(square -> group == game -> boomedGroup && game -> boomRoundsRemaining > 0){
@@ -525,52 +551,6 @@ void renovateProperty(Player *p, int playerIndex, Square *squares, Square *squar
     checkBankruptcy(p, playerIndex, squares);
     printf("%s renovated %s for LKR %d. Rental income increased.\n", p -> name, square -> name, cost);
 }
-/*void buildHouse(Player *p , int playerIndex ,Square *squares,Square *square,GameState *game){ //square -> because we need one square details, it will pass when fuction call
-    //printf("Build houses function called\n\n");
-    if(square -> numHouses >= 4 || square -> hasHotel == 1){
-        return;
-    }
-    if(p -> cash < square -> baseHouseCost){
-        return;
-    }
-    if(!canBuildEvenly(squares , square->group ,square->index)){
-        return;//Rule 9 , must build evenly in property group
-    }
-
-    if(square -> group == game -> boomedGroup && game -> boomRoundsRemaining > 0){
-        p -> cash -= (square -> baseHouseCost * 110)/100; //Rule LK 31
-    }else{
-        p -> cash -= square -> baseHouseCost;
-    }
-    square -> numHouses++;
-    printf("Build houses called\n\n");
-
-    printf("%s construct one house on %s.\n", p->name , square->name);
-    printf("Construction Cost : LKR %d\n",square->baseHouseCost);
-}*/
-
-/*void buildHotel(Player *p , int playerIndex, Square *square,GameState *game){ //square -> because we need one square details, it will pass when fuction call
-    //printf("Build hotels function called\n\n");
-    if(square -> numHouses !=4 || square -> hasHotel == 1){
-        return; //Rule 10 - player need exactly 4 houses first to build a hotel
-    }
-    if(p -> cash < square -> baseHotelCost){
-        return;
-    }
-
-    if(square -> group == game -> boomedGroup && game -> boomRoundsRemaining > 0){
-        p -> cash -= (square -> baseHotelCost * 110)/100; //Rule LK 31
-    }else{
-        p -> cash -= square -> baseHotelCost;
-    }
-    square -> numHouses = 0;
-    square -> hasHotel = 1;
-    printf("Build hotels called\n\n");
-
-    p -> numHotelCount++;
-
-    printf("%s upgraded %s to a Hotel",p->name , square->name);
-}*/
 
 //get random inflation
 void calculateInflation(Square *squares,int currentRound,GameState *game){
@@ -615,6 +595,10 @@ void purchaseInsurance(Player *p, Square *square, int policyChoice, GameState *g
 
     if(isNationalEffectActive(game,CARD_INSURANCE_DISCOUNT,p->index)){
         premium = (premium * 80) / 100;
+    }
+
+    if(isEconomicEventActive(game, ECON_HEAVY_MONSOON)){
+        premium = (premium * 125) / 100; //Rule-LK 18: premiums increase (assumed +25%)
     }
     
     if(p -> cash < premium){
