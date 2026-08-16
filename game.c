@@ -245,7 +245,7 @@ void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int d
                     printf("%s landed on %s (unowned). Price: LKR %d\n",
                         players[currentPlayerIndex].name, landedSquare->name, landedSquare->marketPrice);
 
-                    if (shouldBuyProperty(&players[currentPlayerIndex],landedSquare)) {
+                    if (shouldBuyProperty(&players[currentPlayerIndex],landedSquare) && (canPurchaseProperty(game,currentPlayerIndex,squares))) {
                         players[currentPlayerIndex].cash -= landedSquare->marketPrice;
                         players[currentPlayerIndex].numOwnedProperties += 1;
 
@@ -266,6 +266,10 @@ void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int d
                 } else if (landedSquare->owner == currentPlayerIndex) {
                     printf("%s landed on their own property, %s.\n", players[currentPlayerIndex].name, landedSquare->name);
 
+                    if(shouldRenovate(&players[currentPlayerIndex],landedSquare->depreciationPct)){
+                        renovateProperty(&players[currentPlayerIndex],currentPlayerIndex,squares,landedSquare);
+                    }
+
                 } else {
                     if (!landedSquare->isMortgaged) {
                         if(landedSquare->isDamaged){
@@ -275,6 +279,10 @@ void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int d
                         }else{
                         
                             int rent = calculateRent(landedSquare , squares , diceRoll,game);
+
+                            if(players[currentPlayerIndex].cash < rent){
+                                raiseCashByMortgage(&players[currentPlayerIndex], currentPlayerIndex, squares, game, rent);
+                            }//Mortgage to cover rent
 
                             players[currentPlayerIndex].cash -= rent;
                             players[landedSquare->owner].cash += rent;
@@ -289,8 +297,23 @@ void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int d
                 }
             } else if(landedSquare->type == SQ_TAX){
 
-                payTax(&players[currentPlayerIndex], squares[4].baseRent, currentPlayerIndex, squares); //Call the function from finance.c to handle tax payment
-            
+                if(landedSquare->index == 2){
+                    //Community Development Fund: 10% of property assets (buildings excluded)
+                    int tax = (totalPropertyAssets(currentPlayerIndex, squares) * marketTaxRate(game, 10)) / 100;
+                    payTax(&players[currentPlayerIndex], tax, currentPlayerIndex, squares, game);
+                }else{
+                    
+                    //Income Tax: 15% of total assets (cash + properties)
+                    int rate = 15;
+
+                    if(isRegulationActive(game, REG_INCREASE_PROPERTY_TAX)){
+                        rate = (rate * 150) / 100; //Rule-LK 24: Income Tax +50% -> 22.5%
+                    }
+
+                    int assets = players[currentPlayerIndex].cash + totalPropertyAssets(currentPlayerIndex, squares);
+                    int tax = (assets * marketTaxRate(game, rate)) / 100;
+                    payTax(&players[currentPlayerIndex], tax, currentPlayerIndex, squares, game);
+                }
 
 //Special square handeling
             }else if(landedSquare->type == SQ_SPECIAL){
@@ -315,11 +338,15 @@ void resolveLanding(Player *players,int currentPlayerIndex,Square *squares,int d
                     if(squares[i].owner == currentPlayerIndex && squares[i].insurancePolicyType == None_Insurance){
                         int choice = decideInsurancePolicy(&players[currentPlayerIndex], &squares[i]); //Call the function from players.c to decide insurance policy
                         if(choice > 0){
-                            purchaseInsurance(&players[currentPlayerIndex], &squares[i],choice); //Call the function from finance.c to purchase insurance
+                            purchaseInsurance(&players[currentPlayerIndex], &squares[i],choice,game); //Call the function from finance.c to purchase insurance
                             break; // Only allow one insurance purchase per turn
                         }
                     }
                 }
+            }else if(landedSquare -> type == SQ_EVENT){
+                printf("%s landed on %s (National Event Card).\n", players[currentPlayerIndex].name, landedSquare->name);
+                NationalCardId card = drawEventCard(game); //Draw a national card from the deck
+                applyEventCard(card, players, currentPlayerIndex, squares, game); //Apply the effect of the drawn card
             }
         
 }
@@ -332,7 +359,7 @@ void calculateNetWorth(Player *players,Square *squares){
 
         for(int i=0 ; i<BOARD_SIZE ; i++){ 
             if(squares[i].owner == j){
-                players[j].totalPropertyValue += squares[i].marketPrice;
+                players[j].totalPropertyValue += currentMarketValue(&squares[i]); //Use current market value instead of base purchase price
                 if(squares[i].hasHotel){
                     buildingValue += squares[i].baseHotelCost;
                 }else if(squares[i].numHouses > 0){
@@ -377,6 +404,10 @@ int resolveJailTurn(Player *p){
 //Build Monopoly 
 void tryBuildMonopolies(Player *p , int playerIndex , Square *squares,GameState *game){
     printf("TryBuildMONOPOLY called\n\n");
+    if(isNationalEffectActive(game,CARD_LABOUR_STRIKE,playerIndex)){
+        printf("%s cannot build due to Labour Strike.\n",p->name);
+        return;
+    }
     for(int group = Group_Brown; group <= Group_DarkBlue; group ++){
         if(hasMonopoly(playerIndex , squares , (PropertyGroup)group)){
             p -> hasMonopoly = 1;
@@ -408,6 +439,12 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
     game -> declinedGroup = GROUP_NONE;
     game -> currentRound = currentRound;
     game -> currentLoanInterest = 0.08;
+    game -> activeRegulation = -1;
+    game -> regulationRoundsRemaining = 0;
+    game -> activeRegionalCard = -1;
+    game -> regionalCardRoundsRemaining = 0;
+
+    initEventDeck(game);
 
     while(!gameOver && currentRound < MAX_ROUND ){
 
@@ -426,6 +463,18 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
             if(players[currentPlayerIndex].isBankrupt == 1){
                 continue;
             }
+            //Rule-LK 27/29: maintain or renovate buildings at the beginning of the turn
+            for(int j = 0; j < BOARD_SIZE; j++){
+                if(squares[j].owner == currentPlayerIndex && (squares[j].numHouses > 0 || squares[j].hasHotel == 1)){
+                    if(squares[j].isStructurallyDamaged){
+                        renovateDamagedBuilding(&players[currentPlayerIndex], currentPlayerIndex, squares, &squares[j]);
+                    }else if(squares[j].buildingCondition < 100 &&
+                        shouldMaintain(&players[currentPlayerIndex], squares[j].buildingCondition)){
+                        maintainProperty(&players[currentPlayerIndex], currentPlayerIndex, squares, &squares[j]);
+                    }
+                }   
+            }
+
             int oldPosition = players[currentPlayerIndex].position;
             int diceRoll = rollDice();
             printf("%s rolled %d\n",players[currentPlayerIndex].name,diceRoll);
@@ -470,12 +519,22 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
                         if(squares[j].owner == i && squares[j].isLoanLocked == 1){
                             players[i].numOwnedProperties--;
                             squares[j].owner = -1; //Return to bank
+
+                            squares[j].propertyAge = 0;//Reset property age
+                            squares[j].depreciationPct = 0;//Reset depreciation percentage
+
                             squares[j].isLoanLocked = 0;
                             squares[j].numHouses = 0;//Houses demolished
                             squares[j].hasHotel = 0;//Hotel demolished
                             printf("%s's property %s has been returned to the bank.\n",players[i].name,squares[j].name);
                             squares[j].insurancePolicyType = None_Insurance;
                             squares[j].insuranceRoundsRemaining = 0;
+
+                            squares[j].propertyAge = 0;//Reset property age
+                            squares[j].depreciationPct = 0;//Reset depreciation percentage
+                            squares[j].buildingCondition = 100;           //Rule-LK 25: reset condition
+                            squares[j].roundsWithoutMaintenance = 0;      //Rule-LK 28: reset ignored-rounds
+                            squares[j].isStructurallyDamaged = 0;         //Rule-LK 28: clear damage flag
                         }
                         if(squares[j].owner == i){
                             stillHasProperties = 1;
@@ -490,6 +549,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
                     if(!stillHasProperties && players[i].cash <= 0){
                         checkBankruptcy(&players[i],i,squares);//finance.c RULE LK 7
                         
+
                         printf("%s has no properties and is bankrupt.\n",players[i].name);
                     }
                 }
@@ -506,6 +566,50 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
                     printf("Insurance policy for %s has expired.\n",squares[i].name);
                     squares[i].insurancePolicyType = None_Insurance;
                     squares[i].insuranceRoundsRemaining = 0;
+                }
+            }
+        }
+        tickNationalEffects(game);
+
+        //Rule-LK 25: building condition decreases by 2% at the end of every round
+        //Rule-LK 28: structural damage if maintenance ignored for more than 20 rounds
+        for(int i = 0; i < BOARD_SIZE; i++){
+            if(squares[i].owner != -1 && (squares[i].numHouses > 0 || squares[i].hasHotel == 1)){
+                squares[i].buildingCondition -= 2;
+                if(squares[i].buildingCondition < 0) squares[i].buildingCondition = 0;
+                squares[i].roundsWithoutMaintenance++;
+                if(squares[i].roundsWithoutMaintenance > 20 && !squares[i].isStructurallyDamaged){
+                    squares[i].isStructurallyDamaged = 1;
+                    printf("STRUCTURAL DAMAGE: %s ignored maintenance too long!\n", squares[i].name);
+                    printf("Property value -15%%, max rent -25%%, maintenance costs +50%%.\n");
+                }
+            }
+        }
+
+        //Rule-LK 15: property age increases every complete round
+        //Rule-LK 16: older than 50 rounds, -1% value per 5 rounds, max 30%
+        for(int i = 0; i < BOARD_SIZE; i++){
+            if(squares[i].owner != -1){
+                squares[i].propertyAge++;
+                if(squares[i].propertyAge > 50 && squares[i].propertyAge % 5 == 0){
+                    if(squares[i].depreciationPct < 30){
+                        squares[i].depreciationPct++;
+                        printf("%s has depreciated by %d%% (age %d rounds).\n",
+                            squares[i].name, squares[i].depreciationPct, squares[i].propertyAge);
+                    }
+                }
+            }
+        }
+
+        //Luxury Property Tax
+        if(isRegulationActive(game, REG_LUXURY_PROPERTY_TAX)){
+            for(int i = 0; i < BOARD_SIZE; i++){
+                if(squares[i].hasHotel && squares[i].owner != -1){
+                    int hotelTax = (int)((currentMarketValue(&squares[i]) * 25) / 100);
+                    players[squares[i].owner].cash -= hotelTax;
+                    printf("%s paid LKR %d luxury property tax for %s (Hotel).\n",
+                        players[squares[i].owner].name, hotelTax, squares[i].name);
+                    checkBankruptcy(&players[squares[i].owner], squares[i].owner, squares);
                 }
             }
         }
@@ -550,6 +654,22 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
             game -> currentRound = currentRound;
             updateMarketBoomDecline(game); //Call the function to do market Boom or Decline
 
+            //Check if a government regulation is active and decrement the remaining rounds
+            if(game -> regulationRoundsRemaining > 0){
+                game -> regulationRoundsRemaining--;
+            }
+            if(currentRound % 20 == 0){
+                triggerGovernmentRegulation(game, squares);
+            }
+
+            //Check if a regional development card is active and decrement the remaining rounds
+            if(game -> regionalCardRoundsRemaining > 0){
+                game -> regionalCardRoundsRemaining--;
+            }
+            if(currentRound % 15 == 0){
+                triggerRegionalDevelopment(game, squares);
+            }
+
             //Call Inflaction function in finance.c
             if(currentRound %10 == 0){
                 calculateInflation(squares,currentRound,game);
@@ -584,6 +704,8 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
             printf("Rounds Remainig : %d\n\n",game -> declineRoundsRemaining);
 
             printf("Regional Development\n------------------\n");
+
+            printActiveRegionalCard(game); //Call the function to print the active regional development card            
 
             printf("\nInflaction\n--------------\n%.2f\n",game -> currentInflactionRate);
 

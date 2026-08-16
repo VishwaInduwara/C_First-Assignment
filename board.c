@@ -34,6 +34,10 @@ void initBoard(Square *squares){
         squares[i].buildingCondition = 100;
         squares[i].isLoanLocked = 0;
         squares[i].isDamaged = 0; //Initially, no square is damaged
+        squares[i].depreciationPct = 0;
+        squares[i].renovationLevel = 0;
+        squares[i].roundsWithoutMaintenance = 0;//Initially, no square has maintenance issues
+        squares[i].isStructurallyDamaged = 0;
 
         //Insurance Policy
         squares[i].insurancePolicyType = None_Insurance;
@@ -55,7 +59,7 @@ void initBoard(Square *squares){
     squares[1].baseRent = 100;
 
     strcpy(squares[2].name, "Community Development Fund");
-    squares[2].type = SQ_EVENT;
+    squares[2].type = SQ_TAX;
 
     strcpy(squares[3].name, "Maradana");
     squares[3].type = SQ_PROPERTY;
@@ -70,7 +74,7 @@ void initBoard(Square *squares){
 
     strcpy(squares[4].name, "Income Tax");
     squares[4].type = SQ_TAX;
-    squares[4].baseRent = 2000; //Not given
+    
 
     strcpy(squares[5].name, "Colombo Fort Railway Station");
     squares[5].type = SQ_RAILWAY;

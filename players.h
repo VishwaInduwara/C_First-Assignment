@@ -19,4 +19,8 @@ int wantsToBid(Player *p,Square *square, int bidAmount);
 
 int decideInsurancePolicy(Player *p,Square *square);
 
+int shouldRenovate(Player *p, int depreciationPct);
+
+int shouldMaintain(Player *p, int condition);
+
 #endif // PLAYERS_H

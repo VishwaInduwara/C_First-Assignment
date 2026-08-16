@@ -6,4 +6,23 @@
 void updateMarketBoomDecline(GameState *game);
 void triggerDisaster(Player *players, Square *squares);
 
+//National Card Functions
+void initEventDeck(GameState *game);
+void applyEventCard(NationalCardId card,Player *players,int playerIndex, Square *squares,GameState *game);
+NationalCardId drawEventCard(GameState *game);
+int isNationalEffectActive(GameState *game,int cardID,int playerIndex);
+int isPropertyClosed(GameState *game,int propertyIndex);
+void tickNationalEffects(GameState *game);
+
+//Government Regulation Functions
+void triggerGovernmentRegulation(GameState *game, Square *squares);
+int isRegulationActive(GameState *game, GovernmentRegulation reg);
+int canPurchaseProperty(GameState *game, int playerIndex, Square *squares);
+
+//Regional Card Functions
+void triggerRegionalDevelopment(GameState *game, Square *squares);
+int isRegionalCardActive(GameState *game, RegionalCardId card);
+void revertRegionalCard(GameState *game, Square *squares);
+void printActiveRegionalCard(GameState *game);
+
 #endif

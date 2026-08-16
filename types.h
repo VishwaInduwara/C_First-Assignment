@@ -4,6 +4,7 @@
 #define BOARD_SIZE 40
 #define MAX_PLAYERS 4
 #define MAX_ROUND 500
+#define MAX_ACTIVE_NATIONAL_EFFECTS 20
 
 // Loan Trigger Thresholds (based on LKR 30,000 starting capital)
 #define LOAN_THRESHOLD_AGGRESSIVE     15000  // 50% of starting cash
@@ -53,22 +54,70 @@ typedef enum{
 }PolicyType;
 
 typedef enum{
+    CARD_TOURISM_HYPE,             //0 Hotels earn double rent for 5 rounds
+    CARD_FUEL_SHORTAGE,            //1 Railway rent doubles for 5 rounds
+    CARD_HEAVY_FLOODS,             //2 Random coastal property damaged
+    CARD_POLITICAL_RALLY,          //3 One random property closed for 2 rounds
+    CARD_STOCK_MARKET_RISE,        //4 All property values increase by 10%
+    CARD_ECONOMIC_DOWNTURN,        //5 Property values decrease by 15%
+    CARD_HOUSING_SUBSIDY,          //6 House construction cost reduced by 30%
+    CARD_INTEREST_RATE_CUT,        //7 Loan interest reduced by 2%
+    CARD_INTEREST_RATE_INCREASE,   //8 Loan interest increased by 2%
+    CARD_TAX_AMNESTY,              //9 Each player receives LKR 2,000
+    CARD_POWER_FAILURE,            //10 Utility income halved for 3 rounds
+    CARD_FOREIGN_FUNDING,          //11 Commercial property values increase by 15%
+   
+    
+    CARD_PORT_EXPANSION,           //12 Railway station values increase by 20%
+    CARD_FESTIVAL_SEASON,          //13 Hotels receive 50% additional rent
+    CARD_LABOUR_STRIKE,            //14 Construction suspended for 2 rounds
+    CARD_INSURANCE_DISCOUNT,       //15 Premiums reduced by 20%
+    CARD_PROPERTY_REVALUATION,     //16 Random property group appreciates by 15%
+    
+    
+    CARD_CURRENCY_DEPRECIATION,    //17 Construction costs increase by 10%
+    CARD_GOVERNMENT_GRANT,         //18 Random player receives LKR 5,000
+    CARD_NATIONAL_DISASTER,        //19 Random developed property damaged
+    NUM_NATIONAL_CARDS             //20
+} NationalCardId;
+    
+
+
+typedef enum{
     STRATEGY_AGGRESSIVE_INVESTOR ,
     STRATEGY_CONSERVATIVE_BANKER ,
     STRATEGY_RISK_TAKER ,
     STRATEGY_OPPORTUNISTIC_TRADER ,
 } PlayerStrategy;
 
+typedef enum{
+    REG_INCREASE_PROPERTY_TAX,   //0 Income Tax +50%
+    REG_REDUCE_LOAN_INTEREST,    //1 Loan interest -2%
+    REG_HOUSING_SUBSIDY,         //2 House construction -30%
+    REG_LUXURY_PROPERTY_TAX,     //3 Hotels pay 25% maintenance tax
+    REG_RAILWAY_MODERNIZATION,   //4 Railway rent +25%
+    REG_ELECTRICITY_TARIFF,      //5 Utility rent +20%
+    REG_INSURANCE_REGULATION,    //6 Insurance premiums -15%
+    REG_ANTI_SPECULATION,        //7 Max 3 undeveloped properties
+    NUM_GOVERNMENT_REGULATIONS   //8
+} GovernmentRegulation;
 
-//Structs
+typedef enum{
+    REGIONAL_SOUTHERN_TOURISM,      //0 rents +40% {26,27,29}
+    REGIONAL_PORT_CITY_EXPANSION,   //1 value +25% {1,3,5}
+    REGIONAL_IT_GROWTH,             //2 value +20% {11,13,14}
+    REGIONAL_NORTHERN_DEVELOPMENT,  //3 value +30% {31,32,34}
+    REGIONAL_TEA_EXPORT,            //4 value +35% {37}
+    REGIONAL_AIRPORT_EXPANSION,     //5 rents +30% {16,18,19}
+    REGIONAL_UNIVERSITY_GROWTH,     //6 value +20% {21,23}
+    REGIONAL_BEACH_POLLUTION,       //7 rents -30% {26,27,29}
+    REGIONAL_FLOOD_DAMAGE,          //8 value -20% coastal
+    REGIONAL_TRANSPORT_STRIKE,      //9 railway rent -40%
+    REGIONAL_ELECTRICITY_TARIFF,    //10 utility rent +25%
+    REGIONAL_WATER_SHORTAGE,        //11 utility{28} rent +20%; {26,27,29} value -10%
+    NUM_REGIONAL_CARDS              //12
+} RegionalCardId;
 
-
-/*typedef struct{
-    int index;
-    SquareType type;
-    char name[50];
-    int propertyIndex;
-} Square;*/
 
 
 typedef struct{
@@ -99,6 +148,12 @@ typedef struct{
     int isLoanLocked; //Rule 3
     int isDamaged; //0 or 1, for disaster events
 
+    int depreciationPct;   //Rule-LK 16: 0-30, % of value/rent lost (0 = not depreciated)
+    int renovationLevel;   //Rule-LK 17: number of renovations (permanent +5% rent each)
+
+    int roundsWithoutMaintenance; //Rule-LK 28: consecutive rounds since last maintenance
+    int isStructurallyDamaged;    //Rule-LK 28: 0/1 structural damage flag
+
     //Insurance Policy
     PolicyType insurancePolicyType;
     int insuranceRoundsRemaining; //Number of rounds remaining for the insurance policy
@@ -114,7 +169,7 @@ typedef struct{
 
     int playerrolls; //Dice value rolled by the player to determine turn order
 
-    //int ownedProperties[28]; //Array of property indices owned by the player
+    int ownedProperties[28]; //Array of property indices owned by the player
     int numOwnedProperties; //Number of properties owned by the player
     int numHotelCount;
 
@@ -135,15 +190,14 @@ typedef struct{
     int netWorth;
 } Player;
 
-/*typedef struct{
-    int amount;
-    int interestRate; //Percentage
-    int remainingTurns; //Number of turns left to repay the loan
-    int collateralProperty[28];
-    int numCollateralProperties; //Number of properties used as collateral
-    int ownerPlayerIndex; //Index of the player who took the loan
-    int isActive; //0 or 1
-} Loan;*/
+typedef struct{           
+    int targetPlayer;     //Player the effect applies to (-1 = all players)
+    int targetProperty;   //Property index (Political Rally only, else -1)
+    int roundsRemaining;  //Rounds left for the effect
+    int isActive;  //0 or 1
+    int cardID;   //NationalCardId    
+} NationalEffect;
+
 
 typedef struct{
     int currentRound;
@@ -163,7 +217,15 @@ typedef struct{
     int activeRegionalCard; //-1=none
     int regionalCardRoundsRemaining; //Number of rounds remaining for the active regional card effect
 
+    int activeRegulation;          // -1 = none, else GovernmentRegulation
+    int regulationRoundsRemaining; // rounds the regulation stays active
+
+    int nationalCardDeck[NUM_NATIONAL_CARDS]; //Array to hold the national card deck
+    int nationalCardTop; //index of the next card to draw
+    NationalEffect nationalEffects[MAX_ACTIVE_NATIONAL_EFFECTS]; //Array to hold active national card effects
+    //int eventDeckFront; //index of the "top" card to draw next
     int gameOver; //0 or 1
 } GameState;
 
 #endif // TYPES_H
+

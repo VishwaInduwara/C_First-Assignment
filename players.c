@@ -79,7 +79,7 @@ int shouldTakeLoan(Player *p,int maxLoanAvailable,Square *squares){
     }
     switch(p -> strategy){
         case STRATEGY_AGGRESSIVE_INVESTOR:
-            if(!squares[p -> position].hasHotel == 1 && p -> hasMonopoly ==1){
+            if(squares[p -> position].hasHotel == 0 && p -> hasMonopoly ==1){
                 return 1;
             }else{
                 return(p -> cash < LOAN_THRESHOLD_AGGRESSIVE);
@@ -248,5 +248,34 @@ int decideInsurancePolicy(Player *p,Square *square){
         
         default:
             return 0;
+    }
+}
+
+int shouldRenovate(Player *p, int depreciationPct){
+    if(depreciationPct <= 0){
+        return 0;
+    }
+    switch(p -> strategy){
+        case STRATEGY_AGGRESSIVE_INVESTOR:   
+            return depreciationPct >= 5;  //keeps properties pristine
+        case STRATEGY_CONSERVATIVE_BANKER:   
+            return depreciationPct >= 10; //renovates once >10% (spec)
+        case STRATEGY_RISK_TAKER:            
+            return depreciationPct >= 30; //ignores until unavoidable (max)
+        case STRATEGY_OPPORTUNISTIC_TRADER:  
+            return depreciationPct >= 15; //renovates once >15% (spec)
+        default:                            
+            return 0;
+    }
+}
+
+int shouldMaintain(Player *p, int condition){
+    if(condition >= 100) return 0;
+    switch(p -> strategy){
+        case STRATEGY_AGGRESSIVE_INVESTOR:  return condition < 75; //keeps 75%+ rent bracket
+        case STRATEGY_CONSERVATIVE_BANKER:  return condition < 90; //keeps 100% rent bracket
+        case STRATEGY_RISK_TAKER:           return condition < 25; //ignores until near closure
+        case STRATEGY_OPPORTUNISTIC_TRADER: return condition < 50; //balances cost vs rent
+        default:                            return 0;
     }
 }
