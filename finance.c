@@ -186,7 +186,8 @@ int checkBankruptcy(Player *p,int playerIndex,Square *squares){
                 squares[i].insurancePolicyType = None_Insurance; // Expire insurance
                 squares[i].insuranceRoundsRemaining = 0; // Reset insurance rounds
                 squares[i].isLoanLocked = 0; // Unlock property from loan
-
+                squares[i].isMortgaged = 0; //clear mortgage when returned to the bank
+                
                 squares[i].propertyAge = 0;
                 squares[i].depreciationPct = 0;
 
@@ -354,6 +355,10 @@ int canBuildEvenly(Square *squares , PropertyGroup group ,  int propertyIndex){
 
 void buildHouse(Player *p, int playerIndex, Square *squares, Square *square, GameState *game){
     printf("%s is attempting to build a house on %s.\n", p->name, square->name);
+    if(square -> isMortgaged == 1){
+        printf("%s cannot build on %s - property is mortgaged.\n", p->name, square->name);
+        return;
+    }
     if(square -> numHouses >= 4 || square -> hasHotel == 1){
         return;
     }
@@ -398,6 +403,10 @@ void buildHouse(Player *p, int playerIndex, Square *squares, Square *square, Gam
 }
 
 void buildHotel(Player *p, int playerIndex, Square *square, GameState *game,Square *squares){
+    if(square -> isMortgaged == 1){
+        printf("%s cannot build on %s - property is mortgaged.\n", p->name, square->name);
+        return;
+    }
     if(square -> numHouses != 4 || square -> hasHotel == 1){
         return;
     }

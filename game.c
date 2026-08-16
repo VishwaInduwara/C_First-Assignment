@@ -533,6 +533,7 @@ void runGame(Player *players,int turnOrder[],Square *squares,GameState *game){
                             squares[j].depreciationPct = 0;//Reset depreciation percentage
 
                             squares[j].isLoanLocked = 0;
+                            squares[j].isMortgaged = 0; //clear mortgage when returned to the bank
                             squares[j].numHouses = 0;//Houses demolished
                             squares[j].hasHotel = 0;//Hotel demolished
                             printf("%s's property %s has been returned to the bank.\n",players[i].name,squares[j].name);
